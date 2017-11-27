@@ -721,7 +721,6 @@ int input_read_parameters(
 
     if (flag1 == _TRUE_) {
       pba->Omega0_ur = param1*7./8.*pow(4./11.,4./3.)*pba->Omega0_g;
-      printf("pba->Omega0_ur %e\n", pba->Omega0_ur);
 
     }
     if (flag2 == _TRUE_) {
