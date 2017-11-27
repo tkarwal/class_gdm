@@ -808,8 +808,7 @@ int input_read_parameters(
 
     Omega_tot += pba->Omega0_gdm;
 
-
-    printf("This is what was read in for GDM parameters \nw_gdm = %f    ceff^2_gdm = %f    cvis^2_gdm = %f   Omega_gdm = %f\n", pba->w_gdm, ppt->ceff2_gdm, ppt->cvis2_gdm, pba->Omega0_gdm);
+    if(pba->Omega0_gdm >0 )printf("This is what was read in for GDM parameters \nw_gdm = %f    ceff^2_gdm = %f    cvis^2_gdm = %f   Omega_gdm = %f\n", pba->w_gdm, ppt->ceff2_gdm, ppt->cvis2_gdm, pba->Omega0_gdm);
 
 
 
@@ -3120,8 +3119,8 @@ int input_default_params(
   ppt->three_cvis2_ur=1.;
 
   // TK added GDM parameters to perturbation structure because that's how it's coded now.
-  pba->ceff2_gdm = 0.;
-  pba->cvis2_gdm = 0.;
+  ppt->ceff2_gdm = 0.;
+  ppt->cvis2_gdm = 0.;
 
   ppt->z_max_pk=0.;
 
