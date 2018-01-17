@@ -7283,6 +7283,11 @@ int perturb_derivs(double tau,
   double w_fld,dw_over_da_fld,w_prime_fld,integral_fld;
   int n;
   double width,center,z,cs2before,cs2after;
+
+  /* TK declared GDM parameters here */
+  double w_gdm,dw_over_da_gdm,w_prime_gdm,integral_gdm;
+
+
   /* for use with non-cold dark matter (ncdm): */
   int index_q,n_ncdm,idx;
   double q,epsilon,dlnf0_dlnq,qk_div_epsilon;
