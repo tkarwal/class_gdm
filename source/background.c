@@ -2717,6 +2717,8 @@ int background_derivs(
   struct background_parameters_and_workspace * pbpaw;
   struct background * pba;
   double * pvecback, a, H, rho_M;
+  // TK added GDM parameters here 
+  double w_gdm, dw_over_da_gdm, integral_gdm;
   int n;
   pbpaw = parameters_and_workspace;
   pba =  pbpaw->pba;
@@ -2753,8 +2755,9 @@ int background_derivs(
   // Not sure about this one
   if (pba->has_gdm == _TRUE_) {
     /** - Compute gdm density \f$ \rho' = -3aH (1+w_{gdm}(a)) \rho \f$ */
+    class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, pba->error_message);
     dy[pba->index_bi_rho_gdm] = -3.*y[pba->index_bi_a]*pvecback[pba->index_bg_H]*(1.+pvecback[pba->index_bg_w_gdm])*y[pba->index_bi_rho_gdm];
-    if(pba->w_gdm < 0.33) { rho_M += pvecback[pba->index_bg_rho_gdm]; }
+    if(w_gdm < 0.33) { rho_M += pvecback[pba->index_bg_rho_gdm]; }
   } 
 
 
