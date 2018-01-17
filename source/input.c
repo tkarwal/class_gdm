@@ -805,17 +805,17 @@ int input_read_parameters(
     class_test(((flag1 == _TRUE_) && (flag2 == _TRUE_)),
                errmsg,
                "In input file, you can only enter one of Omega_gdm or omega_gdm, choose one");
-    if (pba->w_gdm > 0.33 && pba->w_gdm < 0.34){
-      if(flag1 == _TRUE_) pba->Omega0_gdm = param1*7./8.*pow(4./11.,4./3.)*pba->Omega0_g;
-      else if(flag2 == _TRUE_) pba->Omega0_gdm = param2*7./8.*pow(4./11.,4./3.)*pba->Omega0_g;
-      // printf("pba->Omega0_gdm %e\n", pba->Omega0_gdm);
-    }
-    else {
+    // if (pba->w_gdm > 0.33 && pba->w_gdm < 0.34){
+    //   if(flag1 == _TRUE_) pba->Omega0_gdm = param1*7./8.*pow(4./11.,4./3.)*pba->Omega0_g;
+    //   else if(flag2 == _TRUE_) pba->Omega0_gdm = param2*7./8.*pow(4./11.,4./3.)*pba->Omega0_g;
+    //   // printf("pba->Omega0_gdm %e\n", pba->Omega0_gdm);
+    // }
+    // else {
       if ( flag1 == _TRUE_)
         pba->Omega0_gdm = param1;
       if (flag2 == _TRUE_)
         pba->Omega0_gdm = param2/pba->h/pba->h;
-    }
+    // }
 
     Omega_tot += pba->Omega0_gdm;
 
@@ -3270,7 +3270,7 @@ int input_default_params(
   pba->ncdm_psd_files = NULL;
 
   /* TK added */
-  pba->w_gdm = 0.;
+  // pba->w_gdm = 0.;
   pba->w0_gdm = 0.;
   pba->wa_gdm = 0.;
   pba->Omega0_gdm = 0.;
