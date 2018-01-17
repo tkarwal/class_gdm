@@ -185,8 +185,13 @@ struct perturbs
   // Unlike w/ ur species, I'm not defining 3*c_eff^2, but simply ceff^2 for gdm
   double ceff2_gdm;/**< 3 x effective squared sound speed for the GDM perturbations */
   double cvis2_gdm;/**< 3 x effective viscosity parameter for the GDM perturbations */
-  
-  short cs2_is_w;
+
+  /* TK added GDM here */
+  // Unlike w/ ur species, I'm not defining 3*c_eff^2, but simply ceff^2 for gdm 
+  double ceff2_gdm;/**< 3 x effective squared sound speed for the GDM perturbations */
+  double cvis2_gdm;/**< 3 x effective viscosity parameter for the GDM perturbations */
+
+
   double z_max_pk; /**< when we compute only the matter spectrum / transfer functions, but not the CMB, we are sometimes interested to sample source functions at very high redshift, way before recombination. This z_max_pk will then fix the initial sampling time of the sources. */
 
   //@}
@@ -327,8 +332,6 @@ struct perturbs
 
   //@}
 
-  short use_big_theta_fld;
-
   /** @name - list of k values for each mode */
 
   //@{
@@ -424,15 +427,21 @@ struct perturb_vector
   int index_pt_delta_gdm; /**< gdm density */
   int index_pt_theta_gdm; /**< gdm velocity */
   int index_pt_shear_gdm; /**< shear of gdm */
+<<<<<<< HEAD
   // TK removed this
   int index_pt_l3_gdm;    /**< l=3 of gdm */
   int l_max_gdm;          /**< max momentum in Boltzmann hierarchy (at least 3) */
+=======
+  // TK removed this 
+  // int index_pt_l3_gdm;    /**< l=3 of gdm */
+  // int l_max_gdm;          /**< max momentum in Boltzmann hierarchy (at least 3) */
+
+>>>>>>> 317dd62e0edde01f628716794665ba6298f29d81
 
   int index_pt_delta_dcdm; /**< dcdm density */
   int index_pt_theta_dcdm; /**< dcdm velocity */
   int index_pt_delta_fld;  /**< dark energy density in true fluid case */
   int index_pt_theta_fld;  /**< dark energy velocity in true fluid case */
-  int index_pt_big_theta_fld;  /**< dark energy velocity divided by (1+w_fld) in true fluid case */
   int index_pt_Gamma_fld;  /**< unique dark energy dynamical variable in PPF case */
   int index_pt_phi_scf;  /**< scalar field density */
   int index_pt_phi_prime_scf;  /**< scalar field velocity */
@@ -539,10 +548,10 @@ struct perturb_workspace
   double delta_m;	/**< relative density perturbation of all non-relativistic species */
   double theta_m;	/**< velocity divergence theta of all non-relativistic species */
 
-  double * delta_rho_fld;        /**< density perturbation of fluid, not so trivial in PPF scheme */
-  double * rho_plus_p_theta_fld; /**< velocity divergence of fluid, not so trivial in PPF scheme */
+  double delta_rho_fld;        /**< density perturbation of fluid, not so trivial in PPF scheme */
+  double rho_plus_p_theta_fld; /**< velocity divergence of fluid, not so trivial in PPF scheme */
   double S_fld;                /**< S quantity sourcing Gamma_prime evolution in PPF scheme (equivalent to eq. 15 in 0808.3125) */
-  double * Gamma_prime_fld;      /**< Gamma_prime in PPF scheme (equivalent to eq. 14 in 0808.3125) */
+  double Gamma_prime_fld;      /**< Gamma_prime in PPF scheme (equivalent to eq. 14 in 0808.3125) */
 
   FILE * perturb_output_file; /**< filepointer to output file*/
   int index_ikout;            /**< index for output k value (when k_output_values is set) */

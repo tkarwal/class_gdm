@@ -266,8 +266,6 @@ int background_functions(
   double rho_ncdm,p_ncdm,pseudo_p_ncdm;
   /* index for n_ncdm species */
   int n_ncdm;
-
-  int n;
   /* fluid's time-dependent equation of state parameter */
   double w_fld, dw_over_da, integral_fld;
   // TK added GDM here 
@@ -313,23 +311,52 @@ int background_functions(
     rho_tot += pvecback[pba->index_bg_rho_cdm];
     p_tot += 0.;
     rho_m += pvecback[pba->index_bg_rho_cdm];
+
   }
 
   /* TK added GDM here */
   if (pba->has_gdm == _TRUE_) {
+    pvecback[pba->index_bg_rho_gdm] = pba->Omega0_gdm * pow(pba->H0,2) / pow(a_rel, 3*(1 + pba->w_gdm) );
+    rho_tot += pvecback[pba->index_bg_rho_gdm];
+    p_tot += (pba->w_gdm) * pvecback[pba->index_bg_rho_gdm];
+    // rho_m += pvecback[pba->index_bg_rho_gdm];
+    // rho_r += pvecback[pba->index_bg_rho_ur];
+
+
+    // TK , VP : the following was only to try to debug GDM. It simply copies CDM 
+    // pvecback[pba->index_bg_rho_gdm] = pba->Omega0_cdm * pow(pba->H0,2) / pow(a_rel, 3 );
+    // rho_tot += pvecback[pba->index_bg_rho_cdm];
+    // rho_m += pvecback[pba->index_bg_rho_cdm];
+
+
+  }
+
+<<<<<<< HEAD
+  /* TK added GDM here */
+  if (pba->has_gdm == _TRUE_) {
     /* get rho_gdm from vector of integrated variables */
     pvecback[pba->index_bg_rho_gdm] = pvecback_B[pba->index_bi_rho_gdm];
+
+
     /* get w_gdm from dedicated function */
     class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, pba->error_message);
     pvecback[pba->index_bg_w_gdm] = w_gdm;
+
 
     rho_tot += pvecback[pba->index_bg_rho_gdm];
     p_tot += w_gdm * pvecback[pba->index_bg_rho_gdm];
 
     if ( w_gdm > 0.33 && w_gdm < 0.34)rho_r += pvecback[pba->index_bg_rho_gdm];
     else rho_m += pvecback[pba->index_bg_rho_gdm];
+    // TK , VP : the following was only to try to debug GDM. It simply copies CDM
+    // pvecback[pba->index_bg_rho_gdm] = pba->Omega0_cdm * pow(pba->H0,2) / pow(a_rel, 3 );
+    // rho_tot += pvecback[pba->index_bg_rho_cdm];
+    // rho_m += pvecback[pba->index_bg_rho_cdm];
+
   }
 
+=======
+>>>>>>> 317dd62e0edde01f628716794665ba6298f29d81
 
   /* dcdm */
   if (pba->has_dcdm == _TRUE_) {
@@ -415,22 +442,20 @@ int background_functions(
 
   /* fluid with w(a) and constant cs2 */
   if (pba->has_fld == _TRUE_) {
-    for(n = 0 ; n<pba->n_fld ; n++){
-      /* get rho_fld from vector of integrated variables */
-      pvecback[pba->index_bg_rho_fld+n] = pvecback_B[pba->index_bi_rho_fld+n];
 
-      /* get w_fld from dedicated function */
-      class_call(background_w_fld(pba,a,&w_fld,&dw_over_da,&integral_fld,n), pba->error_message, pba->error_message);
-      pvecback[pba->index_bg_w_fld+n] = w_fld;
-      pvecback[pba->index_bg_dw_fld+n] = dw_over_da/(1+w_fld);
-      // printf("a %e w_fld %e \n",a,w_fld);
-      // Obsolete: at the beginning, we had here the analytic integral solution corresponding to the case w=w0+w1(1-a/a0):
-      // pvecback[pba->index_bg_rho_fld] = pba->Omega0_fld * pow(pba->H0,2) / pow(a_rel,3.*(1.+pba->w0_fld+pba->wa_fld)) * exp(3.*pba->wa_fld*(a_rel-1.));
-      // But now everthing is integrated numerically for a given w_fld(a) defined in the function background_w_fld.
-      rho_tot += pvecback[pba->index_bg_rho_fld+n];
-      p_tot += w_fld * pvecback[pba->index_bg_rho_fld+n];
-    }
+    /* get rho_fld from vector of integrated variables */
+    pvecback[pba->index_bg_rho_fld] = pvecback_B[pba->index_bi_rho_fld];
 
+    /* get w_fld from dedicated function */
+    class_call(background_w_fld(pba,a,&w_fld,&dw_over_da,&integral_fld), pba->error_message, pba->error_message);
+    pvecback[pba->index_bg_w_fld] = w_fld;
+    // printf("a %e w_fld %e \n",a,w_fld);
+    // Obsolete: at the beginning, we had here the analytic integral solution corresponding to the case w=w0+w1(1-a/a0):
+    // pvecback[pba->index_bg_rho_fld] = pba->Omega0_fld * pow(pba->H0,2) / pow(a_rel,3.*(1.+pba->w0_fld+pba->wa_fld)) * exp(3.*pba->wa_fld*(a_rel-1.));
+    // But now everthing is integrated numerically for a given w_fld(a) defined in the function background_w_fld.
+    // printf("rho tot %e rho fld %e \n",rho_tot,pvecback[pba->index_bg_rho_fld]);
+    rho_tot += pvecback[pba->index_bg_rho_fld];
+    p_tot += w_fld * pvecback[pba->index_bg_rho_fld];
   }
 
   /* relativistic neutrinos (and all relativistic relics) */
@@ -441,7 +466,6 @@ int background_functions(
     rho_r += pvecback[pba->index_bg_rho_ur];
 
   }
-  // if(pvecback[pba->index_bg_rho_fld]+pvecback[pba->index_bg_rho_cdm]>pvecback[pba->index_bg_rho_ur]+pvecback[pba->index_bg_rho_g])printf("a %e rho tot %e rho fld %e \n",a,rho_tot,pvecback[pba->index_bg_rho_fld]);
 
   /** - compute expansion rate H from Friedmann equation: this is the
       only place where the Friedmann equation is assumed. Remember
@@ -477,6 +501,66 @@ int background_functions(
 
 }
 
+
+
+/**
+ * Single place where the GDM equation of state is
+ * defined. Parameters of the function are currently hard coded 
+ * but can be added and passed through background srtuct
+ * Generalisation to arbitrary functions should
+ * be simple.
+ *
+ * @param pba            Input: pointer to background structure
+ * @param a              Input: current value of scale factor
+ * @param w_gdm          Output: equation of state parameter w_gdm(a)
+ * @param dw_over_da_gdm Output: function dw_gdm/da
+ * @param integral_gdm   Output: function \f$ \int_{a}^{a_0} da 3(1+w_{gdm})/a \f$
+ * @return the error status
+ */
+
+int background_w_gdm(
+                     struct background * pba,
+                     double a,
+                     double * w_gdm,
+                     double * dw_over_da_gdm,
+                     double * integral_gdm) {
+
+ double  a_rel = a/ pba->a_today;
+ double w,dw,intw;
+    /** - first, define the function w(a) */
+    *w_gdm = pba->w0_gdm + pba->wa_gdm * (1. - a / pba->a_today);
+
+    /** - then, give the corresponding analytic derivative dw/da (used
+          by perturbation equations; we could compute it numerically,
+          but with a loss of precision; as long as there is a simple
+          analytic expression of the derivative of the previous
+          function, let's use it! */
+    *dw_over_da_gdm = - pba->wa_gdm / pba->a_today;
+
+    /** - finally, give the analytic solution of the following integral:
+          \f$ \int_{a}^{a0} da 3(1+w_{fld})/a \f$. This is used in only
+          one place, in the initial conditions for the background, and
+          with a=a_ini. If your w(a) does not lead to a simple analytic
+          solution of this integral, no worry: instead of writing
+          something here, the best would then be to leave it equal to
+          zero, and then in background_initial_conditions() you should
+          implement a numerical calculation of this integral only for
+          a=a_ini, using for instance Romberg integration. It should be
+          fast, simple, and accurate enough. */
+    *integral_gdm = 3.*((1.+pba->w0_gdm+pba->wa_gdm)*log(pba->a_today/a) + pba->wa_gdm*(a/pba->a_today-1.));
+    // printf("*integral_fld  %e w0_fld %e \n",*integral_fld,pba->w0_fld);
+    /** note: of course you can generalise these formulas to anything,
+        defining new parameters pba->w..._fld. Just remember that so
+        far, HyRec explicitely assumes that w(a)= w0 + wa (1-a/a0); but
+        Recfast does not assume anything */
+
+
+  return _SUCCESS_;
+}
+
+
+
+
 /**
  * Single place where the fluid equation of state is
  * defined. Parameters of the function are passed through the
@@ -496,12 +580,9 @@ int background_w_fld(
                      double a,
                      double * w_fld,
                      double * dw_over_da_fld,
-                     double * integral_fld,
-                     int n) {
+                     double * integral_fld) {
 
  double  a_rel = a/ pba->a_today;
- double z = 1/a_rel-1;
- double center, width, wbefore, wafter;
  double w,dw,intw;
   if(pba->w_fld_parametrization == CPL){
     /** - first, define the function w(a) */
@@ -532,24 +613,10 @@ int background_w_fld(
         Recfast does not assume anything */
   }
   else if(pba->w_fld_parametrization == pheno_axion){
-    w = (pba->n_pheno_axion[n]-1)/(1+pba->n_pheno_axion[n]);
-    *w_fld = (1+w)/(1+pow(pba->a_c[n]/a,3*(1+w)))-1+1e-10; //we add 1e-10 to avoid a crashing of the solver. Checked to be totally invisible.
-    // *w_fld = (pow(a/ pba->a_today,6) - pow(pba->a_c/ pba->a_today,6))/(pow(a/ pba->a_today,6) + pow(pba->a_c/ pba->a_today,6));
-    *dw_over_da_fld = 3*pow(a/pba->a_today,-1-3*(1+w))*pba->a_c[n]/ pba->a_today*(1+w)*(1+w)/pow((1 + pba->a_c[n]/pba->a_today*pow(a/ pba->a_today,-3*(1+w))),2);
-    *integral_fld = -(3*(1 + w)*(3*w*log(a/pba->a_today) + log(pow(a/pba->a_today,3) + pow(pba->a_c[n]/ pba->a_today,3)*pow(pba->a_c[n]/a,3*w)))/(3 + 3*w));
-    // printf("%e %e %e %e \n",a,*w_fld,*dw_over_da_fld,*integral_fld);
-  }
-  else if(pba->w_fld_parametrization == pheno_alternative){
-    z = 1/a-1;
-    center = 1/pba->a_c[n]-1;
-    width = 2*center/200;//found to work well at capturing the sharp transition
-    wbefore = -1;
-    wafter = (pba->n_pheno_axion[n]-1)/(1+pba->n_pheno_axion[n]);
-    *w_fld = (wbefore - wafter)*(tanh((z - center)/width) + 1)/2 + wafter;
-    // *w_fld = (pow(a/ pba->a_today,6) - pow(pba->a_c/ pba->a_today,6))/(pow(a/ pba->a_today,6) + pow(pba->a_c/ pba->a_today,6));
-    *dw_over_da_fld = (wbefore - wafter)* (1-pow(tanh((z - center)/width),2))/(2*width);
-    // printf("dw_over_da_fld %e\n", *dw_over_da_fld);
-    *integral_fld = 0; //to be computed numerically
+    *w_fld = (pow(a/ pba->a_today,6) - pow(pba->a_c/ pba->a_today,6))/(pow(a/ pba->a_today,6) + pow(pba->a_c/ pba->a_today,6));
+    *dw_over_da_fld = 12*pow(a/ pba->a_today,5)*pow(pba->a_c/ pba->a_today,6)/pow((pow(a/ pba->a_today,6) + pow(pba->a_c/ pba->a_today,6)),2);
+    *integral_fld = log((pow(pba->a_today,6)+pow(pba->a_c/ pba->a_today,6))/(pow(a/ pba->a_today,6)+pow(pba->a_c/ pba->a_today,6)));
+
     // printf("%e %e %e %e \n",a,*w_fld,*dw_over_da_fld,*integral_fld);
   }
   // else if(pba->w_fld_parametrization == cos_axion){
@@ -560,9 +627,11 @@ int background_w_fld(
   //   // printf("%e %e %e %e \n",a,*w_fld,*dw_over_da_fld,*integral_fld);
   // }
   else if(pba->w_fld_parametrization == w_free_function){
-    if(pba->w_free_function_from_file == _TRUE_)interpolate_w_free_function_from_file_at_a(pba,a_rel,&w,&dw);
-    else interpolate_w_free_function_at_a(pba,a_rel,&w,&dw);
-    *w_fld = w+1e-10;
+    // if(pba->w_free_function_from_file == _TRUE_)
+    // printf("pba->w_free_function_number_of_knots %d\n", pba->w_free_function_number_of_knots);
+    interpolate_w_free_function_from_file_at_a(pba,a_rel,&w,&dw);
+    // else interpolate_w_free_function_at_a(pba,a_rel,&w,&dw);
+    *w_fld = w;
     *dw_over_da_fld = dw;
     *integral_fld=0; //will be computed later in background_init once and for all;
   }
@@ -593,7 +662,7 @@ int w_free_function_init( struct precision *ppr,
      if(pba->w_free_function_from_file==_TRUE_){
 
        class_open(fA,ppr->w_free_function_file, "r",pba->error_message);
-       pba->w_free_function_number_of_columns =  1;
+
          /* go through each line */
          while (fgets(line,_LINE_LENGTH_MAX_-1,fA) != NULL) {
            /* eliminate blank spaces at beginning of line */
@@ -617,6 +686,7 @@ int w_free_function_init( struct precision *ppr,
                class_test(sscanf(line,"%d",&num_lines) != 1,
                           pba->error_message,
                           "could not read value of parameters num_lines in file %s\n",ppr->w_free_function_file);
+               printf("num_lines %d\n", num_lines);
                class_alloc(pba->w_free_function_redshift_at_knot,num_lines*sizeof(double),pba->error_message);
                class_alloc(pba->w_free_function_at_knot,num_lines*sizeof(double),pba->error_message);
                class_alloc(pba->w_free_function_d_at_knot,num_lines*sizeof(double),pba->error_message);
@@ -715,7 +785,6 @@ int w_free_function_init( struct precision *ppr,
         }
 
      }
-
         // for(int i=0;i<pba->w_free_function_number_of_knots*pba->w_free_function_number_of_columns;i++){
         //   printf("pba->w_free_function_at_knot %e\n",pba->w_free_function_at_knot[i]);
         // }
@@ -724,18 +793,11 @@ int w_free_function_init( struct precision *ppr,
 
 double integrand_fld_free_function(struct background * pba,
                                    double a,
-                                   int is_log,
-                                   int n_fld){
+                                   int is_log){
 
- double tmp_w,tmp_dw,tmp_integral_fld; //temporary storing quantities
- if(pba->w_fld_parametrization == w_free_function){
-   if(pba->w_free_function_from_file == _TRUE_)interpolate_w_free_function_from_file_at_a(pba,a,&tmp_w,&tmp_dw);
-   else interpolate_w_free_function_at_a(pba,a,&tmp_w,&tmp_dw);
- }
- else if(pba->w_fld_parametrization == pheno_alternative){
-   class_call(background_w_fld(pba,a,&tmp_w,&tmp_dw,&tmp_integral_fld,n_fld), pba->error_message, pba->error_message);
- }
-
+ double tmp_w,tmp_dw; //temporary storing quantities
+ if(pba->w_free_function_from_file == _TRUE_)interpolate_w_free_function_from_file_at_a(pba,a,&tmp_w,&tmp_dw);
+ else interpolate_w_free_function_at_a(pba,a,&tmp_w,&tmp_dw);
 
  if(is_log==_TRUE_)return 3*(1+tmp_w); //we integrate in loga;
  else return 3*(1+tmp_w)/a;
@@ -768,38 +830,35 @@ int romberg_integrate_w_free_function(struct background * pba,
                                          size_t max_steps,
                                          double /*desired accuracy*/ acc,
                                          double *intw_fld,
-                                         int is_log,
-                                         int n){
+                                         int is_log){
    double R1[max_steps], R2[max_steps]; //buffers
    double *Rp = &R1[0], *Rc = &R2[0]; //Rp is previous row, Rc is current row
    double h = (b-a); //step size
    double x,xa=a,xb=b;
-   size_t i;
-   size_t j;
    if(is_log == _TRUE_){
      xa=pow(10,xa);
      xb=pow(10,xb);
    }
-   Rp[0] = (integrand_fld_free_function(pba,xa,is_log,n)+integrand_fld_free_function(pba,xb,is_log,n))*h*.5; //first trapezoidal step
+   Rp[0] = (integrand_fld_free_function(pba,xa,is_log)+integrand_fld_free_function(pba,xb,is_log))*h*.5; //first trapezoidal step
    // dump_row(0, Rp);
 
-   for( i = 1; i < max_steps; ++i){
+   for(size_t i = 1; i < max_steps; ++i){
       h /= 2.;
       double c = 0;
       size_t ep = 1 << (i-1); //2^(n-1)
-      for(j = 1; j <= ep; ++j){
+      for(size_t j = 1; j <= ep; ++j){
          x = a+(2*j-1)*h;
          // printf("is_log %d x %e\n", is_log, x);
          if(is_log == _TRUE_){
            x=pow(10,x);
            // printf(" x %e j %d ep %d n", x,j,ep);
          }
-         c += integrand_fld_free_function(pba,x,is_log,n);
+         c += integrand_fld_free_function(pba,x,is_log);
          // printf("c %e x %e j %d ep %d \n", c, x,j,ep);
       }
       Rc[0] = h*c + .5*Rp[0]; //R(i,0)
 
-      for(j = 1; j <= i; ++j){
+      for(size_t j = 1; j <= i; ++j){
          double n_k = pow(4, j);
          Rc[j] = (n_k*Rc[j-1] - Rp[j-1])/(n_k-1); //compute R(i,j)
       }
@@ -994,6 +1053,7 @@ int background_init(
   double rho_ncdm_rel,rho_nu_rel;
   double Neff;
   double w_fld, dw_over_da, integral_fld;
+  double w_gdm, dw_over_da_gdm, integral_gdm;
   int filenum=0;
 
   /** - in verbose mode, provide some information */
@@ -1093,13 +1153,22 @@ int background_init(
     if(pba->w_fld_parametrization == w_free_function){
       w_free_function_init(ppr,pba);
     }
-    class_call(background_w_fld(pba,0,&w_fld,&dw_over_da,&integral_fld,0), pba->error_message, pba->error_message);
+    class_call(background_w_fld(pba,0,&w_fld,&dw_over_da,&integral_fld), pba->error_message, pba->error_message);
 
     class_test(w_fld >= 1./3.,
                pba->error_message,
                "Your choice for w(a--->0)=%g is suspicious, since it is bigger than -1/3 there cannot be radiation domination at early times\n",
                w_fld);
   }
+
+
+  /* GDM equation of state */
+  if (pba->has_gdm == _TRUE_) {
+
+    class_call(background_w_gdm(pba,0,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, pba->error_message);
+
+  }
+
 
   /* in verbose mode, inform the user about the value of the ncdm
      masses in eV and about the ratio [m/omega_ncdm] in eV (the usual
@@ -1182,9 +1251,7 @@ int background_free_input(
       free(pba->w_ncdm_bg[k]);
       free(pba->dlnf0_dlnq_ncdm[k]);
     }
-    free(pba->ncdm_quadrature_strategy);
-    free(pba->ncdm_input_q_size);
-    free(pba->ncdm_qmax);
+
     free(pba->q_ncdm);
     free(pba->w_ncdm);
     free(pba->q_ncdm_bg);
@@ -1238,8 +1305,15 @@ int background_indices(
   /** - initialize all flags: which species are present? */
 
   pba->has_cdm = _FALSE_;
+<<<<<<< HEAD
   /* TK added GDM here */
   pba->has_gdm = _FALSE_;
+=======
+  
+  /* TK added GDM here */
+  pba->has_gdm = _FALSE_;
+
+>>>>>>> 317dd62e0edde01f628716794665ba6298f29d81
   pba->has_ncdm = _FALSE_;
   pba->has_dcdm = _FALSE_;
   pba->has_dr = _FALSE_;
@@ -1254,6 +1328,10 @@ int background_indices(
   }
 
   /* TK added GDM here */
+  if (pba->Omega0_gdm != 0.)
+    pba->has_gdm = _TRUE_;
+
+  /* TK added GDM here */ 
   if (pba->Omega0_gdm != 0.)
     pba->has_gdm = _TRUE_;
 
@@ -1272,7 +1350,7 @@ int background_indices(
   if (pba->Omega0_lambda != 0.)
     pba->has_lambda = _TRUE_;
 
-  if (pba->n_fld != 0){
+  if (pba->Omega0_fld != 0.){
     pba->has_fld = _TRUE_;
   }
 
@@ -1306,11 +1384,19 @@ int background_indices(
   /* - index for rho_cdm */
   class_define_index(pba->index_bg_rho_cdm,pba->has_cdm,index_bg,1);
 
+<<<<<<< HEAD
   /* TK added this to initialise index for rho_gdm */
   /* - index for rho_gdm */
-  class_define_index(pba->index_bg_rho_gdm,_TRUE_,index_bg,1);
+  class_define_index(pba->index_bg_rho_gdm,pba->has_gdm,index_bg,1);
   class_define_index(pba->index_bg_w_gdm,pba->has_gdm,index_bg,1);
+=======
 
+  /* TK added this to initialise index for rho_gdm */ 
+  /* - index for rho_gdm */
+  class_define_index(pba->index_bg_rho_gdm,pba->has_gdm,index_bg,1);
+
+
+>>>>>>> 317dd62e0edde01f628716794665ba6298f29d81
 
   /* - indices for ncdm. We only define the indices for ncdm1
      (density, pressure, pseudo-pressure), the other ncdm indices
@@ -1338,9 +1424,8 @@ int background_indices(
   class_define_index(pba->index_bg_rho_lambda,pba->has_lambda,index_bg,1);
 
   /* - index for fluid */
-  class_define_index(pba->index_bg_rho_fld,pba->has_fld,index_bg,pba->n_fld);
-  class_define_index(pba->index_bg_w_fld,pba->has_fld,index_bg,pba->n_fld);
-  class_define_index(pba->index_bg_dw_fld,pba->has_fld,index_bg,pba->n_fld);
+  class_define_index(pba->index_bg_rho_fld,pba->has_fld,index_bg,1);
+  class_define_index(pba->index_bg_w_fld,pba->has_fld,index_bg,1);
 
   /* - index for ultra-relativistic neutrinos/species */
   class_define_index(pba->index_bg_rho_ur,pba->has_ur,index_bg,1);
@@ -1407,7 +1492,10 @@ int background_indices(
   class_define_index(pba->index_bi_rho_dr,pba->has_dr,index_bi,1);
 
   /* -> energy density in fluid */
-  class_define_index(pba->index_bi_rho_fld,pba->has_fld,index_bi,pba->n_fld);
+  class_define_index(pba->index_bi_rho_fld,pba->has_fld,index_bi,1);
+
+  /* -> energy density in GDM */
+  class_define_index(pba->index_bi_rho_gdm,pba->has_gdm,index_bi,1);
 
   /* -> scalar field and its derivative wrt conformal time (Zuma) */
   class_define_index(pba->index_bi_phi_scf,pba->has_scf,index_bi,1);
@@ -1687,93 +1775,59 @@ int background_ncdm_init(
     }
 
     /* Handle perturbation qsampling: */
-    if (pba->ncdm_quadrature_strategy[k]==qm_auto){
-      /** Automatic q-sampling for this species */
-      class_alloc(pba->q_ncdm[k],_QUADRATURE_MAX_*sizeof(double),pba->error_message);
-      class_alloc(pba->w_ncdm[k],_QUADRATURE_MAX_*sizeof(double),pba->error_message);
+    class_alloc(pba->q_ncdm[k],_QUADRATURE_MAX_*sizeof(double),pba->error_message);
+    class_alloc(pba->w_ncdm[k],_QUADRATURE_MAX_*sizeof(double),pba->error_message);
 
-      class_call(get_qsampling(pba->q_ncdm[k],
-			       pba->w_ncdm[k],
-			       &(pba->q_size_ncdm[k]),
-			       _QUADRATURE_MAX_,
-			       ppr->tol_ncdm,
-			       pbadist.q,
-			       pbadist.tablesize,
-			       background_ncdm_test_function,
-			       background_ncdm_distribution,
-			       &pbadist,
-			       pba->error_message),
-		 pba->error_message,
-		 pba->error_message);
-      pba->q_ncdm[k]=realloc(pba->q_ncdm[k],pba->q_size_ncdm[k]*sizeof(double));
-      pba->w_ncdm[k]=realloc(pba->w_ncdm[k],pba->q_size_ncdm[k]*sizeof(double));
+    class_call(get_qsampling(pba->q_ncdm[k],
+                             pba->w_ncdm[k],
+                             &(pba->q_size_ncdm[k]),
+                             _QUADRATURE_MAX_,
+                             ppr->tol_ncdm,
+                             pbadist.q,
+                             pbadist.tablesize,
+                             background_ncdm_test_function,
+                             background_ncdm_distribution,
+                             &pbadist,
+                             pba->error_message),
+               pba->error_message,
+               pba->error_message);
+    pba->q_ncdm[k]=realloc(pba->q_ncdm[k],pba->q_size_ncdm[k]*sizeof(double));
+    pba->w_ncdm[k]=realloc(pba->w_ncdm[k],pba->q_size_ncdm[k]*sizeof(double));
 
 
-      if (pba->background_verbose > 0)
-	printf("ncdm species i=%d sampled with %d points for purpose of perturbation integration\n",
-	       k+1,
-	       pba->q_size_ncdm[k]);
+    if (pba->background_verbose > 0)
+      printf("ncdm species i=%d sampled with %d points for purpose of perturbation integration\n",
+             k+1,
+             pba->q_size_ncdm[k]);
 
-      /* Handle background q_sampling: */
-      class_alloc(pba->q_ncdm_bg[k],_QUADRATURE_MAX_BG_*sizeof(double),pba->error_message);
-      class_alloc(pba->w_ncdm_bg[k],_QUADRATURE_MAX_BG_*sizeof(double),pba->error_message);
+    /* Handle background q_sampling: */
+    class_alloc(pba->q_ncdm_bg[k],_QUADRATURE_MAX_BG_*sizeof(double),pba->error_message);
+    class_alloc(pba->w_ncdm_bg[k],_QUADRATURE_MAX_BG_*sizeof(double),pba->error_message);
 
-      class_call(get_qsampling(pba->q_ncdm_bg[k],
-			       pba->w_ncdm_bg[k],
-			       &(pba->q_size_ncdm_bg[k]),
-			       _QUADRATURE_MAX_BG_,
-			       ppr->tol_ncdm_bg,
-			       pbadist.q,
-			       pbadist.tablesize,
-			       background_ncdm_test_function,
-			       background_ncdm_distribution,
-			       &pbadist,
-			       pba->error_message),
-		 pba->error_message,
-		 pba->error_message);
+    class_call(get_qsampling(pba->q_ncdm_bg[k],
+                             pba->w_ncdm_bg[k],
+                             &(pba->q_size_ncdm_bg[k]),
+                             _QUADRATURE_MAX_BG_,
+                             ppr->tol_ncdm_bg,
+                             pbadist.q,
+                             pbadist.tablesize,
+                             background_ncdm_test_function,
+                             background_ncdm_distribution,
+                             &pbadist,
+                             pba->error_message),
+               pba->error_message,
+               pba->error_message);
 
 
-      pba->q_ncdm_bg[k]=realloc(pba->q_ncdm_bg[k],pba->q_size_ncdm_bg[k]*sizeof(double));
-      pba->w_ncdm_bg[k]=realloc(pba->w_ncdm_bg[k],pba->q_size_ncdm_bg[k]*sizeof(double));
+    pba->q_ncdm_bg[k]=realloc(pba->q_ncdm_bg[k],pba->q_size_ncdm_bg[k]*sizeof(double));
+    pba->w_ncdm_bg[k]=realloc(pba->w_ncdm_bg[k],pba->q_size_ncdm_bg[k]*sizeof(double));
 
-      /** - in verbose mode, inform user of number of sampled momenta
-	  for background quantities */
-      if (pba->background_verbose > 0)
-	printf("ncdm species i=%d sampled with %d points for purpose of background integration\n",
-	       k+1,
-	       pba->q_size_ncdm_bg[k]);
-    }
-    else{
-      /** Manual q-sampling for this species. Same sampling used for both perturbation and background sampling, since this will usually be a high precision setting anyway */
-      pba->q_size_ncdm_bg[k] = pba->ncdm_input_q_size[k];
-      pba->q_size_ncdm[k] = pba->ncdm_input_q_size[k];
-      class_alloc(pba->q_ncdm_bg[k],pba->q_size_ncdm_bg[k]*sizeof(double),pba->error_message);
-      class_alloc(pba->w_ncdm_bg[k],pba->q_size_ncdm_bg[k]*sizeof(double),pba->error_message);
-      class_alloc(pba->q_ncdm[k],pba->q_size_ncdm[k]*sizeof(double),pba->error_message);
-      class_alloc(pba->w_ncdm[k],pba->q_size_ncdm[k]*sizeof(double),pba->error_message);
-      class_call(get_qsampling_manual(pba->q_ncdm[k],
-				      pba->w_ncdm[k],
-				      pba->q_size_ncdm[k],
-				      pba->ncdm_qmax[k],
-				      pba->ncdm_quadrature_strategy[k],
-				      pbadist.q,
-				      pbadist.tablesize,
-				      background_ncdm_distribution,
-				      &pbadist,
-				      pba->error_message),
-		 pba->error_message,
-		 pba->error_message);
-      for (index_q=0; index_q<pba->q_size_ncdm[k]; index_q++) {
-	pba->q_ncdm_bg[k] = pba->q_ncdm[k];
-	pba->w_ncdm_bg[k] = pba->w_ncdm[k];
-      }
     /** - in verbose mode, inform user of number of sampled momenta
         for background quantities */
-      if (pba->background_verbose > 0)
-	printf("ncdm species i=%d sampled with %d points for purpose of background andperturbation integration using the manual method\n",
-	       k+1,
-	       pba->q_size_ncdm[k]);
-    }
+    if (pba->background_verbose > 0)
+      printf("ncdm species i=%d sampled with %d points for purpose of background integration\n",
+             k+1,
+             pba->q_size_ncdm_bg[k]);
 
     class_alloc(pba->dlnf0_dlnq_ncdm[k],
                 pba->q_size_ncdm[k]*sizeof(double),
@@ -2316,11 +2370,11 @@ int background_initial_conditions(
   double scf_lambda;
   double rho_fld_today;
   double w_fld,dw_over_da_fld,integral_fld;
-  int n;
   // TK added GDM here 
   /* GDM initial conditions */
   double rho_gdm_today;
   double w_gdm,dw_over_da_gdm,integral_gdm;
+
 
   /** - fix initial value of \f$ a \f$ */
   a = ppr->a_ini_over_a_today_default * pba->a_today;
@@ -2373,6 +2427,18 @@ int background_initial_conditions(
   if (pba->has_ur == _TRUE_)
     Omega_rad += pba->Omega0_ur;
 
+<<<<<<< HEAD
+  // TK added GDM here
+  // Not sure if GDM should be added here
+  if (pba->has_gdm == _TRUE_ && (pba->w_gdm > 0.33 && pba->w_gdm < 0.34))
+    Omega_rad += pba->Omega0_gdm;
+=======
+  // TK added GDM here 
+  // Not sure if GDM should be added here
+  // if (pba->has_gdm == _TRUE_)
+  //   Omega_rad += pba->Omega0_gdm;
+>>>>>>> 317dd62e0edde01f628716794665ba6298f29d81
+
   rho_rad = Omega_rad*pow(pba->H0,2)/pow(a/pba->a_today,4);
   if (pba->has_ncdm == _TRUE_){
     /** - We must add the relativistic contribution from NCDM species */
@@ -2406,47 +2472,42 @@ int background_initial_conditions(
   }
 
   if (pba->has_fld == _TRUE_){
-    for(n = 0 ; n<pba->n_fld ; n++){
-      /* rho_fld today */
-      if(pba->Omega0_fld!=0) rho_fld_today = pba->Omega0_fld * pow(pba->H0,2);
-      else rho_fld_today = pba->Omega_many_fld[n] * pow(pba->H0,2);
-      /* integrate rho_fld(a) from a_ini to a_0, to get rho_fld(a_ini) given rho_fld(a0) */
-      class_call(background_w_fld(pba,a,&w_fld,&dw_over_da_fld,&integral_fld,n), pba->error_message, pba->error_message);
+    /* rho_fld today */
+    rho_fld_today = pba->Omega0_fld * pow(pba->H0,2);
 
-      /* Note: for complicated w_fld(a) functions with no simple
-      analytic integral, this is the place were you should compute
-      numerically the simple 1d integral [int_{a_ini}^{a_0} 3
-      [(1+w_fld)/a] da] (e.g. with the Romberg method?) instead of
-      calling background_w_fld */
-      int is_log = _TRUE_;
-      double tmp_integral = 0;
-      if(pba->w_fld_parametrization == w_free_function) {
-        if(pba->w_free_function_from_file == _TRUE_){
-          is_log = _FALSE_;
-        class_call(romberg_integrate_w_free_function(pba,a,pba->a_today,20,1e-4,&tmp_integral,is_log,n),pba->error_message, pba->error_message);
-        integral_fld=tmp_integral;
-        // integral_fld = 6.6671e-7;
-        }
-        else{
-          class_call(romberg_integrate_w_free_function(pba,log10(a),0,30,1e-4,&tmp_integral,is_log,n),pba->error_message, pba->error_message);
-          // if(pba->w_fld_parametrization == w_free_function) class_call(simpson_integrate_w_free_function(pba,-14,-3,1e6,&integral_fld),pba->error_message, pba->error_message);
-          integral_fld=log(10)*tmp_integral; //log10 to log natural conversion
-        }
-        // is_log = _FALSE_;
-        // class_call(romberg_integrate_w_free_function(pba,1e-3,pba->a_today,30,1e-3,&tmp_integral,is_log),pba->error_message, pba->error_message);
-        // integral_fld+=tmp_integral;
-      }
-      else if (pba->w_fld_parametrization == pheno_alternative){
+    /* integrate rho_fld(a) from a_ini to a_0, to get rho_fld(a_ini) given rho_fld(a0) */
+    class_call(background_w_fld(pba,a,&w_fld,&dw_over_da_fld,&integral_fld), pba->error_message, pba->error_message);
+
+    /* Note: for complicated w_fld(a) functions with no simple
+    analytic integral, this is the place were you should compute
+    numerically the simple 1d integral [int_{a_ini}^{a_0} 3
+    [(1+w_fld)/a] da] (e.g. with the Romberg method?) instead of
+    calling background_w_fld */
+    int is_log = _TRUE_;
+    double tmp_integral = 0;
+    if(pba->w_fld_parametrization == w_free_function) {
+      if(pba->w_free_function_from_file == _TRUE_){
         is_log = _FALSE_;
-      class_call(romberg_integrate_w_free_function(pba,a,pba->a_today,30,1e-4,&tmp_integral,is_log,n),pba->error_message, pba->error_message);
+      class_call(romberg_integrate_w_free_function(pba,a,pba->a_today,30,1e-3,&tmp_integral,is_log),pba->error_message, pba->error_message);
       integral_fld=tmp_integral;
+      // integral_fld = 6.6671e-7;
       }
-      // printf("a ini %e a today %e integral_fld  %e\n", a,pba->a_today, integral_fld);
-      // integral_fld = 1; // currently assume the fluid to be negligeable at early time.
-      /* rho_fld at initial time */
-      pvecback_integration[pba->index_bi_rho_fld+n] = rho_fld_today * exp(integral_fld);
+      else{
+        class_call(romberg_integrate_w_free_function(pba,log10(a),0,30,1e-3,&tmp_integral,is_log),pba->error_message, pba->error_message);
+        // if(pba->w_fld_parametrization == w_free_function) class_call(simpson_integrate_w_free_function(pba,-14,-3,1e6,&integral_fld),pba->error_message, pba->error_message);
+        integral_fld=log(10)*tmp_integral; //log10 to log natural conversion
+      }
+      // is_log = _FALSE_;
+      // class_call(romberg_integrate_w_free_function(pba,1e-3,pba->a_today,30,1e-3,&tmp_integral,is_log),pba->error_message, pba->error_message);
+      // integral_fld+=tmp_integral;
     }
+    printf("a ini %e a today %e integral_fld  %e\n", a,pba->a_today, integral_fld);
+    // integral_fld = 1; // currently assume the fluid to be negligeable at early time.
+    /* rho_fld at initial time */
+    pvecback_integration[pba->index_bi_rho_fld] = rho_fld_today * exp(integral_fld);
+
   }
+
 
   // TK added GDM here 
   if (pba->has_gdm == _TRUE_){
@@ -2467,6 +2528,7 @@ int background_initial_conditions(
 
     /* rho_gdm at initial time */
     pvecback_integration[pba->index_bi_rho_gdm] = rho_gdm_today * exp(integral_gdm);
+
   }  
 
 
@@ -2570,9 +2632,16 @@ int background_output_titles(struct background * pba,
   class_store_columntitle(titles,"(.)rho_g",_TRUE_);
   class_store_columntitle(titles,"(.)rho_b",_TRUE_);
   class_store_columntitle(titles,"(.)rho_cdm",pba->has_cdm);
-  // TK this is where sequence of columns has to match with output data
+<<<<<<< HEAD
   class_store_columntitle(titles,"(.)rho_gdm",pba->has_gdm);
   class_store_columntitle(titles,"(.)w_gdm",pba->has_gdm);
+  // TK this is where sequence of columns has to match with output data
+=======
+
+  /* TA added GDM column title to be stored */
+  class_store_columntitle(titles,"(.)rho_gdm",pba->has_gdm);
+
+>>>>>>> 317dd62e0edde01f628716794665ba6298f29d81
   if (pba->has_ncdm == _TRUE_){
     for (n=0; n<pba->N_ncdm; n++){
       sprintf(tmp,"(.)rho_ncdm[%d]",n);
@@ -2582,16 +2651,8 @@ int background_output_titles(struct background * pba,
     }
   }
   class_store_columntitle(titles,"(.)rho_lambda",pba->has_lambda);
-  if (pba->has_fld == _TRUE_){
-    for (n=0; n<pba->n_fld; n++){
-      sprintf(tmp,"(.)rho_fld[%d]",n);
-      class_store_columntitle(titles,tmp,_TRUE_);
-      sprintf(tmp,"(.)w_fld[%d]",n);
-      class_store_columntitle(titles,tmp,_TRUE_);
-      sprintf(tmp,"(.)dw_fld[%d]",n);
-      class_store_columntitle(titles,tmp,_TRUE_);
-    }
-  }
+  class_store_columntitle(titles,"(.)rho_fld",pba->has_fld);
+  class_store_columntitle(titles,"(.)w_fld",pba->has_fld);
   class_store_columntitle(titles,"(.)rho_ur",pba->has_ur);
   class_store_columntitle(titles,"(.)rho_crit",_TRUE_);
   class_store_columntitle(titles,"(.)rho_dcdm",pba->has_dcdm);
@@ -2636,10 +2697,17 @@ int background_output_data(
     class_store_double(dataptr,pvecback[pba->index_bg_rho_b],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rho_cdm],pba->has_cdm,storeidx);
     /* TK added this to store rho_GDM index */
+<<<<<<< HEAD
     // TK This is where the sequence of columns has to match with output titles 
     class_store_double(dataptr,pvecback[pba->index_bg_rho_gdm],pba->has_gdm,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_w_gdm],pba->has_gdm,storeidx);
-
+    // TK , VP to debug background
+=======
+    class_store_double(dataptr,pvecback[pba->index_bg_rho_gdm],pba->has_gdm,storeidx);
+    // TK , VP to debug background 
+>>>>>>> 317dd62e0edde01f628716794665ba6298f29d81
+    // printf(" a %e rhi_cdm %e\n", pba->a_today/pvecback[pba->index_bg_a]-1.,pvecback[pba->index_bg_rho_cdm]);
+    // printf(" a %e rhi_gdm %e\n", pba->a_today/pvecback[pba->index_bg_a]-1.,pvecback[pba->index_bg_rho_gdm]);
     if (pba->has_ncdm == _TRUE_){
       for (n=0; n<pba->N_ncdm; n++){
         class_store_double(dataptr,pvecback[pba->index_bg_rho_ncdm1+n],_TRUE_,storeidx);
@@ -2647,14 +2715,8 @@ int background_output_data(
       }
     }
     class_store_double(dataptr,pvecback[pba->index_bg_rho_lambda],pba->has_lambda,storeidx);
-    if(pba->has_fld == _TRUE_){
-      for (n=0; n<pba->n_fld; n++){
-        class_store_double(dataptr,pvecback[pba->index_bg_rho_fld+n],pba->has_fld,storeidx);
-        class_store_double(dataptr,pvecback[pba->index_bg_w_fld+n],pba->has_fld,storeidx);
-        class_store_double(dataptr,pvecback[pba->index_bg_dw_fld+n],pba->has_fld,storeidx);
-      }
-    }
-
+    class_store_double(dataptr,pvecback[pba->index_bg_rho_fld],pba->has_fld,storeidx);
+    class_store_double(dataptr,pvecback[pba->index_bg_w_fld],pba->has_fld,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rho_ur],pba->has_ur,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rho_crit],_TRUE_,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_rho_dcdm],pba->has_dcdm,storeidx);
@@ -2717,7 +2779,7 @@ int background_derivs(
   struct background_parameters_and_workspace * pbpaw;
   struct background * pba;
   double * pvecback, a, H, rho_M;
-  int n;
+
   pbpaw = parameters_and_workspace;
   pba =  pbpaw->pba;
   pvecback = pbpaw->pvecback;
@@ -2749,6 +2811,7 @@ int background_derivs(
   if (pba->has_cdm)
     rho_M += pvecback[pba->index_bg_rho_cdm];
 
+<<<<<<< HEAD
   // TK added GDM here
   // Not sure about this one
   if (pba->has_gdm == _TRUE_) {
@@ -2756,7 +2819,12 @@ int background_derivs(
     dy[pba->index_bi_rho_gdm] = -3.*y[pba->index_bi_a]*pvecback[pba->index_bg_H]*(1.+pvecback[pba->index_bg_w_gdm])*y[pba->index_bi_rho_gdm];
     if(pba->w_gdm < 0.33) { rho_M += pvecback[pba->index_bg_rho_gdm]; }
   } 
-
+=======
+  // TK added GDM here 
+  // Not sure about this one 
+  if (pba->has_gdm)
+    rho_M += pvecback[pba->index_bg_rho_gdm];
+>>>>>>> 317dd62e0edde01f628716794665ba6298f29d81
 
   dy[pba->index_bi_D] = y[pba->index_bi_D_prime];
   dy[pba->index_bi_D_prime] = -a*H*y[pba->index_bi_D_prime] + 1.5*a*a*rho_M*y[pba->index_bi_D];
@@ -2775,9 +2843,7 @@ int background_derivs(
 
   if (pba->has_fld == _TRUE_) {
     /** - Compute fld density \f$ \rho' = -3aH (1+w_{fld}(a)) \rho \f$ */
-    for(n = 0; n < pba->n_fld; n++){
-      dy[pba->index_bi_rho_fld+n] = -3.*y[pba->index_bi_a]*pvecback[pba->index_bg_H]*(1.+pvecback[pba->index_bg_w_fld+n])*y[pba->index_bi_rho_fld+n];
-    }
+    dy[pba->index_bi_rho_fld] = -3.*y[pba->index_bi_a]*pvecback[pba->index_bg_H]*(1.+pvecback[pba->index_bg_w_fld])*y[pba->index_bi_rho_fld];
   }
 
   if (pba->has_scf == _TRUE_){
