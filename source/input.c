@@ -3271,7 +3271,7 @@ int input_default_params(
 
   /* TK added */
   // pba->w_gdm = 0.;
-  pba->w0_gdm = -1.;
+  pba->w0_gdm = -0.9;
   pba->wa_gdm = 0.;
   pba->Omega0_gdm = 0.;
 
