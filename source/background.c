@@ -330,7 +330,6 @@ int background_functions(
     else rho_m += pvecback[pba->index_bg_rho_gdm];
   }
 
-
   /* dcdm */
   if (pba->has_dcdm == _TRUE_) {
     /* Pass value of rho_dcdm to output */
@@ -476,6 +475,65 @@ int background_functions(
   return _SUCCESS_;
 
 }
+
+
+/**
+ * Single place where the GDM equation of state is
+ * defined. Parameters of the function are currently hard coded 
+ * but can be added and passed through background srtuct
+ * Generalisation to arbitrary functions should
+ * be simple.
+ *
+ * @param pba            Input: pointer to background structure
+ * @param a              Input: current value of scale factor
+ * @param w_gdm          Output: equation of state parameter w_gdm(a)
+ * @param dw_over_da_gdm Output: function dw_gdm/da
+ * @param integral_gdm   Output: function \f$ \int_{a}^{a_0} da 3(1+w_{gdm})/a \f$
+ * @return the error status
+ */
+
+int background_w_gdm(
+                     struct background * pba,
+                     double a,
+                     double * w_gdm,
+                     double * dw_over_da_gdm,
+                     double * integral_gdm) {
+
+ double  a_rel = a/ pba->a_today;
+ double w,dw,intw;
+    /** - first, define the function w(a) */
+    *w_gdm = pba->w0_gdm + pba->wa_gdm * (1. - a / pba->a_today);
+
+    /** - then, give the corresponding analytic derivative dw/da (used
+          by perturbation equations; we could compute it numerically,
+          but with a loss of precision; as long as there is a simple
+          analytic expression of the derivative of the previous
+          function, let's use it! */
+
+    *dw_over_da_gdm = - pba->wa_gdm / pba->a_today;
+
+    /** - finally, give the analytic solution of the following integral:
+          \f$ \int_{a}^{a0} da 3(1+w_{fld})/a \f$. This is used in only
+          one place, in the initial conditions for the background, and
+          with a=a_ini. If your w(a) does not lead to a simple analytic
+          solution of this integral, no worry: instead of writing
+          something here, the best would then be to leave it equal to
+          zero, and then in background_initial_conditions() you should
+          implement a numerical calculation of this integral only for
+          a=a_ini, using for instance Romberg integration. It should be
+          fast, simple, and accurate enough. */
+    *integral_gdm = 3.*((1.+pba->w0_gdm+pba->wa_gdm)*log(pba->a_today/a) + pba->wa_gdm*(a/pba->a_today-1.));
+    // printf("*integral_fld  %e w0_fld %e \n",*integral_fld,pba->w0_fld);
+    /** note: of course you can generalise these formulas to anything,
+        defining new parameters pba->w..._fld. Just remember that so
+        far, HyRec explicitely assumes that w(a)= w0 + wa (1-a/a0); but
+        Recfast does not assume anything */
+
+
+  return _SUCCESS_;
+}
+
+
 
 /**
  * Single place where the fluid equation of state is
@@ -1408,6 +1466,9 @@ int background_indices(
 
   /* -> energy density in fluid */
   class_define_index(pba->index_bi_rho_fld,pba->has_fld,index_bi,pba->n_fld);
+  // TK added GDM here 
+  /* -> energy density in GDM */
+  class_define_index(pba->index_bi_rho_gdm,pba->has_gdm,index_bi,1);
 
   /* -> scalar field and its derivative wrt conformal time (Zuma) */
   class_define_index(pba->index_bi_phi_scf,pba->has_scf,index_bi,1);
@@ -2467,6 +2528,7 @@ int background_initial_conditions(
 
     /* rho_gdm at initial time */
     pvecback_integration[pba->index_bi_rho_gdm] = rho_gdm_today * exp(integral_gdm);
+
   }  
 
 
