@@ -3165,7 +3165,7 @@ int perturb_vector_init(
     }
 
     /* fluid */
-
+    // TK look here 
     if (pba->has_fld == _TRUE_ && pba->use_ppf == _FALSE_ && pba->fld_has_perturbations == _TRUE_) {
       class_define_index(ppv->index_pt_delta_fld,pba->has_fld,index_pt,pba->n_fld); /* fluid density */
       if(ppt->use_big_theta_fld == _TRUE_){
@@ -3612,6 +3612,7 @@ int perturb_vector_init(
             ppv->y[ppv->index_pt_delta_fld+n] =
               ppw->pv->y[ppw->pv->index_pt_delta_fld+n];
 
+          // TK look here 
           if(ppt->use_big_theta_fld == _TRUE_){ppv->y[ppv->index_pt_big_theta_fld+n] =
               ppw->pv->y[ppw->pv->index_pt_big_theta_fld+n];}
           else {ppv->y[ppv->index_pt_theta_fld+n] =
@@ -4350,7 +4351,7 @@ int perturb_initial_conditions(struct precision * ppr,
 
       }
 
-
+      // TK look here at big_theta 
       /* fluid (assumes wa=0, if this is not the case the
          fluid will catch anyway the attractor solution) */
       if (pba->has_fld == _TRUE_ && pba->fld_has_perturbations == _TRUE_) {
@@ -4660,6 +4661,7 @@ int perturb_initial_conditions(struct precision * ppr,
         ppw->pv->y[ppw->pv->index_pt_theta_dcdm] = k*k*alpha;
       }
 
+      // TK look here at big theta 
       /* fluid */
       if ((pba->has_fld == _TRUE_ && pba->fld_has_perturbations == _TRUE_) && (pba->use_ppf == _FALSE_)) {
         // if(1./a -1 > pba->w_free_function_logz_interpolation_above_z)pba->w_free_function_table_is_log = _TRUE_;
@@ -5800,6 +5802,7 @@ int perturb_total_stress_energy(
 
     /* add your extra species here */
 
+    // TK look at big_theta here 
     /* fluid contribution */
     if (pba->has_fld == _TRUE_ && pba->fld_has_perturbations == _TRUE_) {
       for(n = 0; n<pba->n_fld; n++){
@@ -6596,7 +6599,7 @@ int perturb_print_variables(double tau,
   double delta_b,theta_b;
   double delta_cdm=0.,theta_cdm=0.;
   double delta_dcdm=0.,theta_dcdm=0.;
-  double *delta_fld=NULL,*theta_fld=NULL,*big_theta_fld=NULL;
+  double *delta_fld=NULL,*theta_fld=NULL,*big_theta_fld=NULL; // TK look here 
   double delta_dr=0.,theta_dr=0.,shear_dr=0., f_dr=1.0;
   double delta_ur=0.,theta_ur=0.,shear_ur=0.,l4_ur=0.;
   // TK added GDM here
@@ -6653,6 +6656,7 @@ int perturb_print_variables(double tau,
       class_alloc(delta_fld, sizeof(double)*pba->n_fld,error_message);
       if(ppt->use_big_theta_fld == _TRUE_){
         class_alloc(big_theta_fld, sizeof(double)*pba->n_fld,error_message);
+        // TK look here 
       }
       else {
         class_alloc(theta_fld, sizeof(double)*pba->n_fld,error_message);
@@ -6745,6 +6749,7 @@ int perturb_print_variables(double tau,
           for(n = 0; n<pba->n_fld; n++){
             delta_fld[n] = y[ppw->pv->index_pt_delta_fld+n];
             if(ppt->use_big_theta_fld == _TRUE_) big_theta_fld[n] = y[ppw->pv->index_pt_big_theta_fld+n];
+            // TK look here 
             else theta_fld[n] = y[ppw->pv->index_pt_theta_fld+n];
           }
         }
@@ -6915,6 +6920,7 @@ int perturb_print_variables(double tau,
           class_call(background_w_fld(pba,a,&w_fld,&dw_over_da_fld,&integral_fld,n), pba->error_message, ppt->error_message);
           delta_fld[n] += alpha*(-3.0*H*(1.0+w_fld));
           if(ppt->use_big_theta_fld == _TRUE_) big_theta_fld[n]+=(1+w_fld)*k*k*alpha;
+          // TK look here 
           else theta_fld[n] += k*k*alpha;
         }
       }
@@ -7055,7 +7061,7 @@ int perturb_print_variables(double tau,
     if( pba->has_fld == _TRUE_ && pba->fld_has_perturbations == _TRUE_ && pba->use_ppf == _FALSE_){
       for(n = 0; n<pba->n_fld; n++){
       class_store_double(dataptr, delta_fld[n], _TRUE_, storeidx);
-      if(ppt->use_big_theta_fld == _TRUE_) {
+      if(ppt->use_big_theta_fld == _TRUE_) { // TK look here 
         class_store_double(dataptr, big_theta_fld[n], _TRUE_, storeidx);
       }
       else {
@@ -7200,7 +7206,7 @@ int perturb_print_variables(double tau,
   }
   if (pba->has_fld == _TRUE_ && pba->fld_has_perturbations == _TRUE_){
     free(delta_fld);
-    if(ppt->use_big_theta_fld == _TRUE_) free(big_theta_fld);
+    if(ppt->use_big_theta_fld == _TRUE_) free(big_theta_fld); // TK look here You are freeing GDM arrays right? 
     else free(theta_fld);
   }
 
@@ -7699,6 +7705,7 @@ int perturb_derivs(double tau,
             plus actual sound speed in the fluid rest frame cs2 */
           // printf("in perturb derivs %d\n", pba->w_free_function_table_is_log);
 
+        // TK look here. This is where they're dealing with the w = -1 issue as well as the big_theta 
         class_call(background_w_fld(pba,a,&w_fld,&dw_over_da_fld,&integral_fld,n), pba->error_message, ppt->error_message);
         w_prime_fld = dw_over_da_fld * a_prime_over_a * a;
         // if(w_fld==-1) w_fld += 0.3;
@@ -7726,7 +7733,7 @@ int perturb_derivs(double tau,
         /** - ----> fluid density */
         dy[pv->index_pt_delta_fld+n] = -3.*(cs2-w_fld)*a_prime_over_a*y[pv->index_pt_delta_fld+n];
 
-
+        // TK look here. this is also modified for the (1+w) thing for w = -1. Cross check your eqs with this 
         if(ppt->use_big_theta_fld == _TRUE_){
           dy[pv->index_pt_delta_fld+n] +=
           -(y[pv->index_pt_big_theta_fld+n]+(1+w_fld)*metric_continuity)

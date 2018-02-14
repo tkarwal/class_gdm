@@ -12,6 +12,7 @@
 
 enum spatial_curvature {flat,open,closed};
 enum w_fld_parametrization {CPL,pheno_axion,w_free_function,pheno_alternative};
+// TK do we want multiple parametrisations for w_gdm too? 
 /**
  * All background parameters and evolution that other modules need to know.
  *
@@ -98,7 +99,6 @@ struct background
 
   double Omega0_k; /**< \f$ \Omega_{0_k} \f$: curvature contribution */
 
-
   /** modification by VP to add an arbitrary species whose energy density is specified by the user at several knot */
   double rho_w_free_function;
   double * w_free_function_at_knot;
@@ -114,6 +114,23 @@ struct background
   double * w_free_function_redshift_at_knot;
   int w_free_function_number_of_knots;
   int w_free_function_number_of_columns;
+
+  // TK added gdm here : stuff to read in w_gdm array - w_gdm specified by the user at several knot */
+  // double rho_w_gdm;
+  double * w_gdm_at_knot;
+  double * w_gdm_value_at_knot;
+  double * w_gdm_d_at_knot;
+  double * w_gdm_dd_at_knot;
+  double * w_gdm_ddd_at_knot;
+  short w_gdm_table_is_log;
+  // short w_gdm_from_file;
+  double w_gdm_logz_interpolation_above_z;
+  short w_gdm_interpolation_is_linear;
+  // double * w_gdm_dd_density_at_knot;
+  double * w_gdm_redshift_at_knot;
+  int w_gdm_number_of_knots;
+  int w_gdm_number_of_columns;
+
 
   int N_ncdm;                            /**< Number of distinguishable ncdm species */
   double * M_ncdm;                       /**< vector of masses of non-cold relic:
@@ -198,6 +215,12 @@ struct background
   /* TK added stuff for keeping track of GDM */
   int index_bg_rho_gdm;       /**< GDM density */
   int index_bg_w_gdm;         /**< GDM equation of state */
+  // TK look here add the following? 
+  int index_bg_dw_gdm;         /**< derivative of GDM equation of state */
+ 
+  // TK look here add this for GDM too? 
+  // int index_bg_rho_gdm_w_free_function;
+  // int index_bg_p__gdm_w_free_function;
 
   int index_bg_phi_scf;       /**< scalar field value */
   int index_bg_phi_prime_scf; /**< scalar field derivative wrt conformal time */
@@ -301,10 +324,8 @@ struct background
   //@{
 
   short has_cdm;       /**< presence of cold dark matter? */
-
   /* TK added stuff for checking for GDM */
   short has_gdm;       /**< presence of generalised dark matter? */
-
   short has_dcdm;      /**< presence of decaying cold dark matter? */
   short has_dr;        /**< presence of relativistic decay radiation? */
   short has_scf;       /**< presence of a scalar field? */
@@ -314,7 +335,6 @@ struct background
   short has_ur;        /**< presence of ultra-relativistic neutrinos/relics? */
   short has_curvature; /**< presence of global spatial curvature? */
   short has_w_free_function; /**< presence of an arbitrary species with user specified density at some knots? */
-
   //@}
 
   /**
@@ -341,6 +361,7 @@ struct background
    *@name - some flags needed for calling background functions
    */
 
+  // TK will we be adding multiple w_gdm parametrisations?
   //@{
   enum w_fld_parametrization w_fld_parametrization;
   int n_fld;
@@ -568,6 +589,7 @@ extern "C" {
                double phi,
                double phi_prime
                );
+
  int interpolate_w_free_function_at_a(
                           struct background * pba,
                           double a,
@@ -602,6 +624,32 @@ extern "C" {
                                     double a,
                                     int is_log,
                                     int n_fld);
+
+  // TK added gdm here: w_gdm free function stuff for background_w_gdm
+ int interpolate_w_gdm_at_a(
+                          struct background * pba,
+                          double a,
+                          double *w_fld,
+                          double *dw_fld
+                        );
+ int w_gdm_init(
+                          struct precision *ppr,
+                          struct background *pba
+                        );
+ int romberg_integrate_w_gdm(struct background * pba,
+                                         double /*lower limit*/ a,
+                                         double /*upper limit*/ b,
+                                         size_t max_steps,
+                                         double /*desired accuracy*/ acc,
+                                         double *intw_fld,
+                                         int is_log);
+
+ double integrand_w_gdm(struct background * pba,
+                                    double a,
+                                    int is_log,
+                                    int n_fld);
+
+
 #ifdef __cplusplus
 }
 #endif

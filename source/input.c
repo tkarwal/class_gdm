@@ -819,8 +819,70 @@ int input_read_parameters(
 
     Omega_tot += pba->Omega0_gdm;
 
+    // TK added w_gdm free function stuff here 
+    class_read_double("w_gdm_number_of_knots",pba->w_gdm_number_of_knots); // number of rows (z values) of w_gdm 
+    if(pba->w_gdm_number_of_knots > 0){ // If w_gdm specified at all, even once, then do the following 
+      class_call(parser_read_string(pfc,
+                                    "w_gdm_interpolation_is_linear",
+                                    &(string1),
+                                    &(flag1),
+                                    errmsg),
+                 errmsg,
+                 errmsg);
+      if (flag1 == _TRUE_) {
+        if ((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)) {
+          pba->w_gdm_interpolation_is_linear = _TRUE_;
+        }
+        else {
+          if ((strstr(string1,"n") != NULL) || (strstr(string1,"N") != NULL)) {
+            pba->w_gdm_interpolation_is_linear = _FALSE_;
+          }
+          else {
+            class_stop(errmsg,"incomprehensible input '%s' for the field 'w_gdm_interpolation_is_linear'",string1);
+          }
+        }
+      } // checking if interpolation is linear or not 
+      class_read_double("w_gdm_logz_interpolation_above_z",pba->w_gdm_logz_interpolation_above_z); 
+      // above what z should it be log? 
+      class_read_list_of_doubles_or_default("w_gdm_redshift_at_knot",pba->w_gdm_redshift_at_knot,0.0,pba->w_gdm_number_of_knots); 
+      // read all z for which w_gdm is specified 
+      class_read_list_of_doubles_or_default("w_gdm_value_at_knot",pba->w_gdm_value_at_knot,0.0,pba->w_gdm_number_of_knots);
+      // what are the w_gdm s specified 
+      class_alloc(pba->w_gdm_at_knot,sizeof(double)*pba->w_gdm_number_of_columns*pba->w_gdm_number_of_knots,pba->error_message); 
+      // allocate size of doubles x number of columns x number of rows to w_gdm 
+      for(i=0;i<pba->w_gdm_number_of_knots;i++){ // i going over number of rows 
+        pba->w_gdm_at_knot[i*pba->w_gdm_number_of_columns]=pba->w_gdm_value_at_knot[i]; 
+        // w_gdm_at_knot is a collapsed array, so it has value w at every i x number of columns
+        for(n = 1; n < pba->w_gdm_number_of_columns ; n++)pba->w_gdm_at_knot[i*pba->w_gdm_number_of_columns+n]=0.;
+        // at every i x columns + n where we're going over 'columns' 1,2,3 we're putting zeroes for dw, ddw, and dddw 
+        // printf("%e %e %d\n", pba->w_gdm_at_knot[i*pba->w_gdm_number_of_columns],pba->w_gdm_redshift_at_knot[i],pba->w_gdm_number_of_knots);
+        // // print if needed 
+      }
+      // class_read_list_of_doubles_or_default_fill_column("w_gdm_density_at_knot",pba->w_gdm_at_knot,tmp_w_free_function,0,0.0,pba->w_gdm_number_of_knots,4); //the factor 4 stands for rho,drho,ddrho,dddrho
+      if(pba->w_gdm_interpolation_is_linear == _FALSE_)class_alloc(pba->w_gdm_dd_at_knot,sizeof(double)*pba->w_gdm_number_of_columns*pba->w_gdm_number_of_knots,pba->error_message);
+
+    }
 
     // printf("This is what was read in for GDM parameters \nw_gdm = %f    ceff^2_gdm = %f    cvis^2_gdm = %f   Omega_gdm = %f\n", pba->w_gdm, ppt->ceff2_gdm, ppt->cvis2_gdm, pba->Omega0_gdm);
+    
+    // TK look here 
+    // Big theta gdm has been disabled. Add once you understand what to do about it 
+    // class_call(parser_read_string(pfc,
+    //                               "use_big_theta_gdm",
+    //                               &string1,
+    //                               &flag1,
+    //                               errmsg),
+    //             errmsg,
+    //             errmsg);
+
+    // if (flag1 == _TRUE_){
+    //   if((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)){
+    //     ppt->use_big_theta_gdm = _TRUE_;
+    //   }
+    //   else {
+    //     ppt->use_big_theta_gdm = _FALSE_;
+    //   }
+    // }
 
 
 
@@ -1010,7 +1072,6 @@ int input_read_parameters(
   /** - Set curvature sign */
   if (pba->K > 0.) pba->sgnK = 1;
   else if (pba->K < 0.) pba->sgnK = -1;
-
 
    class_call(parser_read_string(pfc,"w_fld_parametrization",&string1,&flag1,errmsg),
               errmsg,
@@ -3274,6 +3335,15 @@ int input_default_params(
   pba->w0_gdm = -0.9;
   pba->wa_gdm = 0.;
   pba->Omega0_gdm = 0.;
+  // TK added w_gdm array stuff here 
+  pba->w_gdm_number_of_knots = 0;
+  pba->w_gdm_logz_interpolation_above_z = 1e30; //arbitrarily large number, no log interpolation in the default case.
+  pba->w_gdm_table_is_log = _FALSE_;
+  pba->w_gdm_interpolation_is_linear = _TRUE_; //default: we linearly interpolate rho and rho'. Found to be better to avoid weird behavior at low-z.
+  pba->w_gdm_table_is_log = _FALSE_; 
+  pba->w_gdm_number_of_columns = 4; //[0,1,2,3]=[1,dw,ddw,dddw];
+  // ppt->use_big_theta_gdm = _FALSE_; // TK look here add this once clear on perturbations 
+
 
   pba->Omega0_scf = 0.; /* Scalar field defaults */
   pba->attractor_ic_scf = _TRUE_;
@@ -3288,6 +3358,7 @@ int input_default_params(
   pba->K = 0.;
   pba->sgnK = 0;
   pba->Omega0_lambda = 1.-pba->Omega0_k-pba->Omega0_g-pba->Omega0_ur-pba->Omega0_b-pba->Omega0_cdm-pba->Omega0_ncdm_tot-pba->Omega0_dcdmdr-pba->Omega0_gdm;
+
   pba->w_free_function_number_of_knots = 0;
   pba->w_free_function_logz_interpolation_above_z = 1e30; //arbitrarily large number, no log interpolation in the default case.
   pba->w_free_function_table_is_log = _FALSE_;

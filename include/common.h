@@ -421,7 +421,9 @@ struct precision
   /** @name - parameters related to the thermodynamics */
 
   //@{
-  FileName w_free_function_file;
+  FileName w_free_function_file; 
+  // TK added GDM here 
+  FileName w_gdm_free_function_file; 
 
   /* - for bbn */
 /* @cond INCLUDE_WITH_DOXYGEN */

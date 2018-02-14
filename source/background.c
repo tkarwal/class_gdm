@@ -502,7 +502,7 @@ int background_w_gdm(
  double  a_rel = a/ pba->a_today;
  double w,dw,intw;
     /** - first, define the function w(a) */
-    *w_gdm = pba->w0_gdm + pba->wa_gdm * (1. - a / pba->a_today);
+    // *w_gdm = pba->w0_gdm + pba->wa_gdm * (1. - a / pba->a_today);
 
     /** - then, give the corresponding analytic derivative dw/da (used
           by perturbation equations; we could compute it numerically,
@@ -510,7 +510,7 @@ int background_w_gdm(
           analytic expression of the derivative of the previous
           function, let's use it! */
 
-    *dw_over_da_gdm = - pba->wa_gdm / pba->a_today;
+    // *dw_over_da_gdm = - pba->wa_gdm / pba->a_today;
 
     /** - finally, give the analytic solution of the following integral:
           \f$ \int_{a}^{a0} da 3(1+w_{fld})/a \f$. This is used in only
@@ -522,16 +522,245 @@ int background_w_gdm(
           implement a numerical calculation of this integral only for
           a=a_ini, using for instance Romberg integration. It should be
           fast, simple, and accurate enough. */
-    *integral_gdm = 3.*((1.+pba->w0_gdm+pba->wa_gdm)*log(pba->a_today/a) + pba->wa_gdm*(a/pba->a_today-1.));
+
+    // *integral_gdm = 3.*((1.+pba->w0_gdm+pba->wa_gdm)*log(pba->a_today/a) + pba->wa_gdm*(a/pba->a_today-1.));
+    
     // printf("*integral_fld  %e w0_fld %e \n",*integral_fld,pba->w0_fld);
     /** note: of course you can generalise these formulas to anything,
         defining new parameters pba->w..._fld. Just remember that so
         far, HyRec explicitely assumes that w(a)= w0 + wa (1-a/a0); but
         Recfast does not assume anything */
 
+    interpolate_w_gdm_at_a(pba,a_rel,&w,&dw);
+    if ( (w == -1.) || (w == 0.) ){
+      w += 1e-10;
+    }
+    *w_gdm = w; // why is this off by 1e-10? Is this to ensure it never exactly zero / -1 ? 
+    *dw_over_da_gdm = dw;
+    *integral_gdm=0; //will be computed later in background_init once and for all;
+
+  // printf("a_rel %e %e %e %e\n",a_rel,*w_fld,*dw_over_da_fld,*integral_fld);
 
   return _SUCCESS_;
 }
+
+
+// This function needs to be called first to read all your array data for w_gdm and to store it correctly 
+// other columns - dw, ddw, and dddw also need to be filled and saved 
+int w_gdm_init( struct precision *ppr,
+                struct background *pba
+              ) {
+  /** - --> second derivative with respect to tau of rho_w_gdm (in view of spline interpolation) */
+  // This is set to zero by definition of spline interpolation 
+  class_call(array_spline_table_line_to_line(pba->w_gdm_redshift_at_knot,
+                                            pba->w_gdm_number_of_knots,
+                                            pba->w_gdm_at_knot,
+                                            pba->w_gdm_number_of_columns,
+                                            0,
+                                            2,
+                                            _SPLINE_NATURAL_,
+                                            pba->error_message),
+            pba->error_message,
+            pba->error_message);
+  /** - --> first derivative with respect to tau of rho_w_gdm (using spline interpolation) */
+  // first derivative calculated 
+  class_call(array_derive_spline_table_line_to_line(pba->w_gdm_redshift_at_knot,
+                                                     pba->w_gdm_number_of_knots,
+                                                     pba->w_gdm_at_knot,
+                                                     pba->w_gdm_number_of_columns,
+                                                     0,
+                                                     2,
+                                                     1,
+                                                     pba->error_message),
+              pba->error_message,
+              pba->error_message);
+
+  /** - --> third derivative with respect to tau of rho_w_gdm (in view of spline interpolation) */
+  // calculated
+  class_call(array_spline_table_line_to_line(pba->w_gdm_redshift_at_knot,
+                                               pba->w_gdm_number_of_knots,
+                                               pba->w_gdm_at_knot,
+                                               pba->w_gdm_number_of_columns,
+                                               1,
+                                               3,
+                                               _SPLINE_NATURAL_,
+                                               pba->error_message),
+               pba->error_message,
+               pba->error_message);
+
+  /** - --> if necessary, fill a table of secondary derivative in view of spline interpolation */
+  // save everything in a table so other functions can use it 
+  if(pba->w_gdm_interpolation_is_linear == _FALSE_){
+    class_call(array_spline_table_lines(pba->w_gdm_redshift_at_knot,
+                                          pba->w_gdm_number_of_knots,
+                                          pba->w_gdm_at_knot,
+                                          pba->w_gdm_number_of_columns,
+                                          pba->w_gdm_dd_at_knot,
+                                          _SPLINE_EST_DERIV_,
+                                          pba->error_message),
+                  pba->error_message,
+                  pba->error_message);
+    }
+
+    // for(int i=0;i<pba->w_gdm_number_of_knots*pba->w_gdm_number_of_columns;i++){
+    //   printf("pba->w_gdm_at_knot %e\n",pba->w_gdm_at_knot[i]);
+    // }
+   return _SUCCESS_;
+}
+
+// This function only tells romberg what to integrate - literally just gives it the integrand 
+double integrand_gdm(struct background * pba,
+                     double a,
+                     int is_log){
+
+  double tmp_w,tmp_dw,tmp_integral_gdm; //temporary storing quantities
+  interpolate_w_gdm_at_a(pba,a,&tmp_w,&tmp_dw);
+
+ if(is_log==_TRUE_)return 3*(1+tmp_w); //we integrate in log(a);
+ else return 3*(1+tmp_w)/a;
+
+}
+
+// Uses romberg integration to get int_w_gdm, calls integrand_gdm 
+int romberg_integrate_w_gdm( struct background * pba,
+                             double /*lower limit*/ a,
+                             double /*upper limit*/ b,
+                             size_t max_steps,
+                             double /*desired accuracy*/ acc,
+                             double *intw_gdm,
+                             int is_log){
+   double R1[max_steps], R2[max_steps]; //buffers
+   double *Rp = &R1[0], *Rc = &R2[0]; //Rp is previous row, Rc is current row
+   double h = (b-a); //step size
+   double x,xa=a,xb=b;
+   size_t i;
+   size_t j;
+   if(is_log == _TRUE_){
+     xa=pow(10,xa);
+     xb=pow(10,xb);
+   }
+   Rp[0] = (integrand_gdm(pba,xa,is_log)+integrand_gdm(pba,xb,is_log))*h*.5; //first trapezoidal step
+   // dump_row(0, Rp);
+
+   for( i = 1; i < max_steps; ++i){
+      h /= 2.;
+      double c = 0;
+      size_t ep = 1 << (i-1); //2^(n-1)
+      for(j = 1; j <= ep; ++j){
+         x = a+(2*j-1)*h;
+         // printf("is_log %d x %e\n", is_log, x);
+         if(is_log == _TRUE_){
+           x=pow(10,x);
+           // printf(" x %e j %d ep %d n", x,j,ep);
+         }
+         c += integrand_gdm(pba,x,is_log);
+         // printf("c %e x %e j %d ep %d \n", c, x,j,ep);
+      }
+      Rc[0] = h*c + .5*Rp[0]; //R(i,0)
+
+      for(j = 1; j <= i; ++j){
+         double n_k = pow(4, j);
+         Rc[j] = (n_k*Rc[j-1] - Rp[j-1])/(n_k-1); //compute R(i,j)
+      }
+
+      //Dump ith column of R, R[i,i] is the best estimate so far
+      // dump_row(i, Rc);
+
+      if(i > 1 && fabs(Rp[i-1]-Rc[i]) < acc){
+         *intw_gdm = Rc[i-1];
+         return _SUCCESS_;
+      }
+
+      //swap Rn and Rc as we only need the last row
+      double *rt = Rp;
+      Rp = Rc;
+      Rc = rt;
+   }
+   // printf("Rp[max_steps-1] %e\n",Rp[max_steps-1]);
+   *intw_gdm = Rp[max_steps-1]; //return our best guess
+
+   return _SUCCESS_;
+}
+
+
+int interpolate_w_gdm_at_a(
+                          struct background * pba,
+                          double a,
+                          double *w_gdm,
+                          double *dw_gdm
+                          ) {
+
+  int last_index;
+  double z;
+  double epsilon = 1e-14;
+  if (a!=0.) z = pba->a_today/a-1.;
+  else z = pba->a_today/(epsilon)-1.;
+  double result[pba->w_gdm_number_of_columns];
+  int i,n;
+
+  // if redhisft is in the range you want log interpolation and the table isn't already log, 
+  // make it a log table and then set the flag of log table to true 
+  if(z > pba->w_gdm_logz_interpolation_above_z && pba->w_gdm_table_is_log == _FALSE_ && pba->w_gdm_redshift_at_knot[pba->w_gdm_number_of_knots-1]>20){
+      for(i = 0 ; i < pba->w_gdm_number_of_knots ; i++){
+        pba->w_gdm_redshift_at_knot[i] = log10(pba->w_gdm_redshift_at_knot[i]);
+      }
+      // printf("a %e z %e pba->w_gdm_redshift_at_knot[pba->w_gdm_number_of_knots-1] %e %d \n", a,z,pba->w_gdm_redshift_at_knot[pba->w_gdm_number_of_knots-1],pba->w_gdm_table_is_log);
+      pba->w_gdm_table_is_log = _TRUE_;
+    }
+
+  // if z in under the log interpolation range, and the table is log, 
+  // un-log the table and set flag to false 
+  else if(z<=pba->w_gdm_logz_interpolation_above_z && pba->w_gdm_table_is_log == _TRUE_ && pba->w_gdm_redshift_at_knot[pba->w_gdm_number_of_knots-1]  < 20){
+    for(i = 0 ; i < pba->w_gdm_number_of_knots ; i++){
+      pba->w_gdm_redshift_at_knot[i] = pow(10,pba->w_gdm_redshift_at_knot[i]);
+    }
+    // printf("a %e  z %e pba->w_gdm_redshift_at_knot[pba->w_gdm_number_of_knots-1] %e %d \n", a,z,pba->w_gdm_redshift_at_knot[pba->w_gdm_number_of_knots-1],pba->w_gdm_table_is_log);
+    pba->w_gdm_table_is_log = _FALSE_;
+  }
+
+  // if we're in the z log interpolation range and we want log interpolation, 
+  // convert the z we're looking for w at to log(z)
+  if(z > pba->w_gdm_logz_interpolation_above_z && pba->w_gdm_table_is_log == _TRUE_){
+    z=log10(z);
+  }
+
+  // either linearly interpolate if we're not in the log interpolate region 
+  if(pba->w_gdm_interpolation_is_linear == _TRUE_){
+   class_call(array_interpolate_linear(pba->w_gdm_redshift_at_knot,
+                                    pba->w_gdm_number_of_knots,
+                                    pba->w_gdm_at_knot,
+                                    pba->w_gdm_number_of_columns,
+                                    z,
+                                    &last_index,
+                                    result,
+                                    pba->w_gdm_number_of_columns,
+                                    pba->error_message),
+           pba->error_message,
+           pba->error_message);
+  }
+  // spline interpolate if we're in the log interpolate region 
+  else{
+    class_call(array_interpolate_spline(pba->w_gdm_redshift_at_knot,
+                                        pba->w_gdm_number_of_knots,
+                                        pba->w_gdm_at_knot,
+                                        pba->w_gdm_dd_at_knot,
+                                        pba->w_gdm_number_of_columns,
+                                        z,
+                                        &last_index,
+                                        result,
+                                        pba->w_gdm_number_of_columns,
+                                        pba->error_message),
+               pba->error_message,
+               pba->error_message);
+  }
+
+  *w_gdm = result[0];
+  *dw_gdm = result[1];
+  // *intw_fld = 0;
+  // printf("a %e z %e w_fld %e dw_fld %e ddwfld %e  dddwfld %e \n",a,z,*w_fld,*dw_fld,result[2],result[3]);
+  return _SUCCESS_;
+}
+
 
 
 
@@ -629,7 +858,6 @@ int background_w_fld(
 
   return _SUCCESS_;
 }
-
 
 
 int w_free_function_init( struct precision *ppr,
@@ -764,10 +992,10 @@ int w_free_function_init( struct precision *ppr,
           class_call(array_spline_table_lines(pba->w_free_function_redshift_at_knot,
                                               pba->w_free_function_number_of_knots,
                                               pba->w_free_function_at_knot,
-                                             pba->w_free_function_number_of_columns,
-                                             pba->w_free_function_dd_at_knot,
-                                             _SPLINE_EST_DERIV_,
-                                             pba->error_message),
+                                              pba->w_free_function_number_of_columns,
+                                              pba->w_free_function_dd_at_knot,
+                                              _SPLINE_EST_DERIV_,
+                                              pba->error_message),
                       pba->error_message,
                       pba->error_message);
         }
@@ -1145,6 +1373,12 @@ int background_init(
   /*class_test((pba->Omega0_k < _OMEGAK_SMALL_)||(pba->Omega0_k > _OMEGAK_BIG_),
              pba->error_message,
              "Omegak = %g out of bounds (%g<Omegak<%g) \n",pba->Omega0_k,_OMEGAK_SMALL_,_OMEGAK_BIG_);*/
+
+  // TK added GDM here 
+  /* GDM equation of state */
+  if (pba->has_gdm == _TRUE_) {
+      w_gdm_init(ppr,pba);
+    }
 
   /* fluid equation of state */
   if (pba->has_fld == _TRUE_) {
@@ -2479,7 +2713,7 @@ int background_initial_conditions(
       numerically the simple 1d integral [int_{a_ini}^{a_0} 3
       [(1+w_fld)/a] da] (e.g. with the Romberg method?) instead of
       calling background_w_fld */
-      int is_log = _TRUE_;
+      int is_log = _TRUE_; 
       double tmp_integral = 0;
       if(pba->w_fld_parametrization == w_free_function) {
         if(pba->w_free_function_from_file == _TRUE_){
@@ -2525,6 +2759,16 @@ int background_initial_conditions(
     [int_{a_ini}^{a_0} 3[(1+w_fld)/a] da] 
     (e.g. with the Romberg method?) instead of
     calling background_w_fld */
+
+    int is_log = _TRUE_; 
+    double tmp_integral = 0;
+    class_call(romberg_integrate_w_gdm(pba,log10(a),0,30,1e-4,&tmp_integral,is_log),pba->error_message, pba->error_message);
+    // if(pba->w_fld_parametrization == w_free_function) class_call(simpson_integrate_w_free_function(pba,-14,-3,1e6,&integral_fld),pba->error_message, pba->error_message);
+    integral_fld=log(10)*tmp_integral; //log10 to log natural conversion
+      // is_log = _FALSE_;
+      // class_call(romberg_integrate_w_gdm(pba,1e-3,pba->a_today,30,1e-3,&tmp_integral,is_log),pba->error_message, pba->error_message);
+      // integral_fld+=tmp_integral;
+    
 
     /* rho_gdm at initial time */
     pvecback_integration[pba->index_bi_rho_gdm] = rho_gdm_today * exp(integral_gdm);
