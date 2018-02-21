@@ -322,7 +322,7 @@ int background_functions(
     /* get w_gdm from dedicated function */
     class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, pba->error_message);
     pvecback[pba->index_bg_w_gdm] = w_gdm;
-    pvecback[pba->index_bg_w_gdm] = dw_over_da_gdm/(1.+w_gdm);
+    pvecback[pba->index_bg_dw_gdm] = dw_over_da_gdm/(1.+w_gdm);
 
     rho_tot += pvecback[pba->index_bg_rho_gdm];
     p_tot += w_gdm * pvecback[pba->index_bg_rho_gdm];
@@ -533,10 +533,10 @@ int background_w_gdm(
         Recfast does not assume anything */
 
     interpolate_w_gdm_at_a(pba,a_rel,&w,&dw);
-    if ( abs(w-1e-5) < 1e-10 ){
-      printf("background\na = %e \t w_gdm = %e \n",a,w);
-      printf("%e\n", (w-1e-5));
-    }
+    // if ( abs(w-1e-5) < 1e-10 ){
+    //   printf("background\na = %e \t w_gdm = %e \n",a,w);
+    //   printf("%e\n", (w-1e-5));
+    // }
 
     // if ( (w == -1.) || (w == 0.) ){
       w += 1e-10;
@@ -766,7 +766,7 @@ int interpolate_w_gdm_at_a(
   *w_gdm = result[0];
   *dw_gdm = result[1];
   // *intw_fld = 0;
-  // printf("a %e z %e w_fld %e dw_fld %e ddwfld %e  dddwfld %e \n",a,z,*w_fld,*dw_fld,result[2],result[3]);
+  // printf("a %e z %e w_gdm %e dw_gdm %e ddwgdm %e  dddwgdm %e \n",a,z,*w_gdm,*dw_gdm,result[2],result[3]);
   return _SUCCESS_;
 }
 

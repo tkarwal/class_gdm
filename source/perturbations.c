@@ -4232,9 +4232,9 @@ int perturb_initial_conditions(struct precision * ppr,
     Adding GDM to rho_m unlike ur species */
     if (pba->has_gdm == _TRUE_) {
       class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
-      if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
-        printf("initial conditions\na = %e \t w_gdm = %e \n",a,w_gdm);
-      }
+      // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
+      //   printf("initial conditions\na = %e \t w_gdm = %e \n",a,w_gdm);
+      // }
       if (w_gdm < 0.33) {
           rho_m += ppw->pvecback[pba->index_bg_rho_gdm];
         }
@@ -4424,9 +4424,9 @@ int perturb_initial_conditions(struct precision * ppr,
       // GDM initial conditions defined here
       if (pba->has_gdm == _TRUE_) {
         class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
-        if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
-         printf("initial conditions 2\na = %e \t w_gdm = %e \n",a,w_gdm);
-       }
+        // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
+        //  printf("initial conditions 2\na = %e \t w_gdm = %e \n",a,w_gdm);
+        //  }
 
         // exact w=1/3 equation
         // delta_gdm = ppw->pv->y[ppw->pv->index_pt_delta_g]; 
@@ -5713,9 +5713,9 @@ int perturb_total_stress_energy(
     /* TK added GDM contribution here */
     if (pba->has_gdm == _TRUE_) {
       class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
-      if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
-        printf("total stress energy\na = %e \t w_gdm = %e \n",a,w_gdm);
-      }
+      // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
+      //   printf("total stress energy\na = %e \t w_gdm = %e \n",a,w_gdm);
+      // }
       ppw->delta_rho = ppw->delta_rho + ppw->pvecback[pba->index_bg_rho_gdm]*y[ppw->pv->index_pt_delta_gdm];
       ppw->rho_plus_p_theta = ppw->rho_plus_p_theta + (w_gdm + 1.)*ppw->pvecback[pba->index_bg_rho_gdm]*y[ppw->pv->index_pt_theta_gdm];
       ppw->rho_plus_p_shear = ppw->rho_plus_p_shear + (w_gdm + 1.)*ppw->pvecback[pba->index_bg_rho_gdm]*y[ppw->pv->index_pt_shear_gdm];
@@ -5913,9 +5913,9 @@ int perturb_total_stress_energy(
       /* TK included GDM too */
       if (pba->has_gdm == _TRUE_) {
         class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
-        if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
-          printf("total stress energy 2\na = %e \t w_gdm = %e \n",a,w_gdm);
-        }
+        // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
+        //   printf("total stress energy 2\na = %e \t w_gdm = %e \n",a,w_gdm);
+        // }
 
         if (w_gdm < 0.33) {
           delta_rho_m += ppw->pvecback[pba->index_bg_rho_gdm]*y[ppw->pv->index_pt_delta_gdm];
@@ -5969,9 +5969,9 @@ int perturb_total_stress_energy(
       /* TK also added GDM to theta_m */
       if (pba->has_gdm == _TRUE_) {
         class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
-        if (abs(w_gdm-1.000010e-05) > 1e-10){
-          printf("total stress energy 3\na = %e \t w_gdm = %e \n",a,w_gdm);
-        }
+        // if (abs(w_gdm-1.000010e-05) > 1e-10){
+        //   printf("total stress energy 3\na = %e \t w_gdm = %e \n",a,w_gdm);
+        // }
         if (w_gdm<0.33) {
           rho_plus_p_theta_m += (w_gdm + 1.)*ppw->pvecback[pba->index_bg_rho_gdm]*y[ppw->pv->index_pt_theta_gdm];
           rho_plus_p_m += (w_gdm + 1.)*ppw->pvecback[pba->index_bg_rho_gdm];
@@ -6950,9 +6950,9 @@ int perturb_print_variables(double tau,
       // TK added GDM here. I figure this looks like 3(1+w)*H*a*alpha
       if (pba->has_gdm == _TRUE_) {
         class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
-        if ( abs(w_gdm-1.000010e-05) > 1e-10 ){ 
-          printf("print variables\na = %e \t w_gdm = %e \n",a,w_gdm);
-        }
+        // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){ 
+        //   printf("print variables\na = %e \t w_gdm = %e \n",a,w_gdm);
+        // }
 
         delta_gdm -= 3.*(1+w_gdm) * pvecback[pba->index_bg_H]*pvecback[pba->index_bg_a]*alpha;
         theta_gdm += k*k*alpha;
@@ -7894,9 +7894,9 @@ int perturb_derivs(double tau,
     if (pba->has_gdm == _TRUE_) {
 
       class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
-      if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
-        printf("derivs\na = %e \t w_gdm = %e \n",a,w_gdm);
-      }
+      // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
+      //   printf("derivs\na = %e \t w_gdm = %e \n",a,w_gdm);
+      // }
       w_prime_gdm = dw_over_da_gdm * a_prime_over_a * a;
 
       cg2 = w_gdm - w_prime_gdm / 3. / (1.+w_gdm) / a_prime_over_a; 
