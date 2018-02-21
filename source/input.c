@@ -815,6 +815,8 @@ int input_read_parameters(
         pba->Omega0_gdm = param1;
       if (flag2 == _TRUE_)
         pba->Omega0_gdm = param2/pba->h/pba->h;
+      printf("pba->Omega0_gdm %e\n", pba->Omega0_gdm);
+      printf("pba->Omega0_cdm %e\n", pba->Omega0_cdm);
     // }
 
     Omega_tot += pba->Omega0_gdm;
@@ -3343,7 +3345,7 @@ int input_default_params(
   pba->w_gdm_table_is_log = _FALSE_; 
   pba->w_gdm_number_of_columns = 4; //[0,1,2,3]=[1,dw,ddw,dddw];
   // ppt->use_big_theta_gdm = _FALSE_; // TK look here add this once clear on perturbations 
-
+  // pba->w_gdm_redshift_at_knot = 
 
   pba->Omega0_scf = 0.; /* Scalar field defaults */
   pba->attractor_ic_scf = _TRUE_;

@@ -51,7 +51,6 @@ int perturb_sources_at_tau(
                            double * psource
                            ) {
 
-
   /** Summary: */
 
   /** - interpolate in pre-computed table contained in ppt */
@@ -4169,6 +4168,7 @@ int perturb_initial_conditions(struct precision * ppr,
                                double tau,
                                struct perturb_workspace * ppw
                                ) {
+
   /** Summary: */
 
   /** --> Declare local variables */
@@ -4232,6 +4232,9 @@ int perturb_initial_conditions(struct precision * ppr,
     Adding GDM to rho_m unlike ur species */
     if (pba->has_gdm == _TRUE_) {
       class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+      if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
+        printf("initial conditions\na = %e \t w_gdm = %e \n",a,w_gdm);
+      }
       if (w_gdm < 0.33) {
           rho_m += ppw->pvecback[pba->index_bg_rho_gdm];
         }
@@ -4421,28 +4424,57 @@ int perturb_initial_conditions(struct precision * ppr,
       // GDM initial conditions defined here
       if (pba->has_gdm == _TRUE_) {
         class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+        if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
+         printf("initial conditions 2\na = %e \t w_gdm = %e \n",a,w_gdm);
+       }
 
-        // delta_gdm = ppw->pv->y[ppw->pv->index_pt_delta_g]; //exact w=1/3 equation
-        // delta_gdm = 3./4.*ppw->pv->y[ppw->pv->index_pt_delta_g]; //exact w=0 equation
-        // delta_gdm = ppw->pv->y[ppw->pv->index_pt_delta_g]*(-3.)*( -1./4. + ( 3.*ppt->ceff2_gdm - 5.*pba->w_gdm )/8. ); // w = constant eq. 
-        delta_gdm = 3./4.*(1+w_gdm)*ppw->pv->y[ppw->pv->index_pt_delta_g]; // Initial condition guess for delta_gdm
+        // exact w=1/3 equation
+        // delta_gdm = ppw->pv->y[ppw->pv->index_pt_delta_g]; 
+        
+        // exact w=0 equation
+        // delta_gdm = 3./4.*ppw->pv->y[ppw->pv->index_pt_delta_g]; 
+
+        // w = constant eq. 
+        // delta_gdm = ppw->pv->y[ppw->pv->index_pt_delta_g]*(-3.)*( -1./4. + ( 3.*ppt->ceff2_gdm - 5.*pba->w_gdm )/8. ); 
+
+        // Initial condition guess for delta_gdm
+        // delta_gdm = 3./4.*(1+w_gdm)*ppw->pv->y[ppw->pv->index_pt_delta_g]; 
+
+        // Initial condition from dark energy with non-adiabatic sound speed paper 1004.5509
+        delta_gdm = -1./4. * (1.+w_gdm) * (4. - 3.*ppt->ceff2_gdm) / (4. - 6.*w_gdm + 3.*ppt->ceff2_gdm) * ktau_two; 
+        // problem with above is that it's for constant w and no shear 
 
 
+        // exact w=1/3 equation
         // theta_gdm = - k*ktau_three/36./(4.*fracnu+15.) * (4.*fracnu+11.+12.*s2_squared-3.*
-        //   (8.*fracnu*fracnu+50.*fracnu+275.)/20./(2.*fracnu+15.)*tau*om) * ppr->curvature_ini * s2_squared; //exact w=1/3 equation
+        //   (8.*fracnu*fracnu+50.*fracnu+275.)/20./(2.*fracnu+15.)*tau*om) * ppr->curvature_ini * s2_squared; 
         
-        // theta_gdm = 0.; //exact w=0 equation in the synchronous gauge
+        // exact w=0 equation in the synchronous gauge
+        // theta_gdm = 0.; 
         
+        // For w = constant 
         // theta_gdm = - k*ktau_three*( 1./16.*ppt->ceff2_gdm + 2.*ppt->cvis2_gdm/3./(4.*fracnu+15.) ); //needs to be generalized to incorporate non-flat universe correction
         /* velocity of gdm. No curvature, s2_sq or 'omega' dependence is assumed here */
-        // For w = constant 
+        
+        // Initial condition guess for theta_gdm 
+        // theta_gdm = 3.*w_gdm*theta_ur; 
 
-        theta_gdm = 3.*w_gdm*theta_ur; // Initial condition guess for theta_gdm 
+        // Initial condition from dark energy with non-adiabatic sound speed paper 1004.5509
+        theta_gdm = -k*ktau_three / 4. * ppt->ceff2_gdm / (4. - 6.*w_gdm + 3.*ppt->ceff2_gdm);
+        // problem with above is that it's for constant w and no shear 
 
-        // shear_gdm = ktau_two/(45.+12.*fracnu) * (3.*s2_squared-1.) * (1.+(4.*fracnu-5.)/4./(2.*fracnu+15.)*tau*om) * ppr->curvature_ini; //exact w=1/3 equation
-        // shear_gdm = 0.; //exact w=0 equation
-        // shear_gdm = ktau_two/(45.+12.*fracnu) * 8.*ppt->cvis2_gdm; //needs to be generalized to incorporate non-flat universe correction
-        shear_gdm = 3.*w_gdm*shear_ur; // Initial condition guess for shear_gdm 
+
+        // exact w=1/3 equation
+        // shear_gdm = ktau_two/(45.+12.*fracnu) * (3.*s2_squared-1.) * (1.+(4.*fracnu-5.)/4./(2.*fracnu+15.)*tau*om) * ppr->curvature_ini; 
+        
+        // exact w=0 equation
+        // shear_gdm = 0.; 
+
+        // for w = constant 
+        shear_gdm = ktau_two/(45.+12.*fracnu) * 8.*ppt->cvis2_gdm; //needs to be generalized to incorporate non-flat universe correction
+        
+        // Initial condition guess for shear_gdm 
+        // shear_gdm = 3.*w_gdm*shear_ur; 
 
         // if (shear_gdm != 0.0) {
         //   printf("shear_gdm set in initial conditions = %e\n", shear_gdm);
@@ -4936,6 +4968,7 @@ int perturb_approximations(
                            double tau,
                            struct perturb_workspace * ppw
                            ) {
+
   /** Summary: */
 
   /** - define local variables */
@@ -5136,6 +5169,7 @@ int perturb_timescale(
                       double * timescale,
                       ErrorMsg error_message
                       ) {
+
   /** Summary: */
 
   /** - define local variables */
@@ -5311,6 +5345,7 @@ int perturb_einstein(
                      double * y,
                      struct perturb_workspace * ppw
                      ) {
+
   /** Summary: */
 
   /** - define local variables */
@@ -5503,6 +5538,7 @@ int perturb_total_stress_energy(
                                 double * y,
                                 struct perturb_workspace * ppw
                                 ) {
+
   /** Summary: */
 
   /** - define local variables */
@@ -5520,7 +5556,7 @@ int perturb_total_stress_energy(
   double delta_gdm=0.;
   double theta_gdm=0.;
   double shear_gdm=0.;
-  double w_gdm,dw_over_da_gdm,integral_gdm;
+  double w_gdm=0.,dw_over_da_gdm=0.,integral_gdm=0.;
 
   double rho_delta_ncdm=0.;
   double rho_plus_p_theta_ncdm=0.;
@@ -5677,6 +5713,9 @@ int perturb_total_stress_energy(
     /* TK added GDM contribution here */
     if (pba->has_gdm == _TRUE_) {
       class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+      if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
+        printf("total stress energy\na = %e \t w_gdm = %e \n",a,w_gdm);
+      }
       ppw->delta_rho = ppw->delta_rho + ppw->pvecback[pba->index_bg_rho_gdm]*y[ppw->pv->index_pt_delta_gdm];
       ppw->rho_plus_p_theta = ppw->rho_plus_p_theta + (w_gdm + 1.)*ppw->pvecback[pba->index_bg_rho_gdm]*y[ppw->pv->index_pt_theta_gdm];
       ppw->rho_plus_p_shear = ppw->rho_plus_p_shear + (w_gdm + 1.)*ppw->pvecback[pba->index_bg_rho_gdm]*y[ppw->pv->index_pt_shear_gdm];
@@ -5874,6 +5913,10 @@ int perturb_total_stress_energy(
       /* TK included GDM too */
       if (pba->has_gdm == _TRUE_) {
         class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+        if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
+          printf("total stress energy 2\na = %e \t w_gdm = %e \n",a,w_gdm);
+        }
+
         if (w_gdm < 0.33) {
           delta_rho_m += ppw->pvecback[pba->index_bg_rho_gdm]*y[ppw->pv->index_pt_delta_gdm];
           rho_m += ppw->pvecback[pba->index_bg_rho_gdm];
@@ -5926,6 +5969,9 @@ int perturb_total_stress_energy(
       /* TK also added GDM to theta_m */
       if (pba->has_gdm == _TRUE_) {
         class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+        if (abs(w_gdm-1.000010e-05) > 1e-10){
+          printf("total stress energy 3\na = %e \t w_gdm = %e \n",a,w_gdm);
+        }
         if (w_gdm<0.33) {
           rho_plus_p_theta_m += (w_gdm + 1.)*ppw->pvecback[pba->index_bg_rho_gdm]*y[ppw->pv->index_pt_theta_gdm];
           rho_plus_p_m += (w_gdm + 1.)*ppw->pvecback[pba->index_bg_rho_gdm];
@@ -6092,6 +6138,7 @@ int perturb_sources(
                     void * parameters_and_workspace,
                     ErrorMsg error_message
                     ) {
+
   /** Summary: */
 
   /** - define local variables */
@@ -6623,6 +6670,7 @@ int perturb_print_variables(double tau,
   double phi=0.,psi=0.,alpha=0.;
   double delta_temp=0., delta_chi=0.;
   double w_fld,dw_over_da_fld,integral_fld;
+  double w_gdm,dw_over_da_gdm,integral_gdm; 
   double a,a2,H;
   int idx,index_q, storeidx;
   double *dataptr;
@@ -6899,6 +6947,17 @@ int perturb_print_variables(double tau,
         theta_cdm += k*k*alpha;
       }
 
+      // TK added GDM here. I figure this looks like 3(1+w)*H*a*alpha
+      if (pba->has_gdm == _TRUE_) {
+        class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+        if ( abs(w_gdm-1.000010e-05) > 1e-10 ){ 
+          printf("print variables\na = %e \t w_gdm = %e \n",a,w_gdm);
+        }
+
+        delta_gdm -= 3.*(1+w_gdm) * pvecback[pba->index_bg_H]*pvecback[pba->index_bg_a]*alpha;
+        theta_gdm += k*k*alpha;
+      }
+
       if (pba->has_ncdm == _TRUE_) {
         for(n_ncdm=0; n_ncdm < pba->N_ncdm; n_ncdm++){
           /** - --> Do gauge transformation of delta, deltaP/rho (?) and theta using -= 3aH(1+w_ncdm) alpha for delta. */
@@ -6926,61 +6985,7 @@ int perturb_print_variables(double tau,
       }
 
     }
-    // TK commented this out
-    // /* converting synchronous variables to newtonian ones */
-    // if (ppt->gauge == synchronous) {
 
-    //   /* density and velocity perturbations (comment out if you wish to keep synchronous variables) */
-
-    //   delta_g -= 4. * pvecback[pba->index_bg_H]*pvecback[pba->index_bg_a]*alpha;
-    //   theta_g += k*k*alpha;
-
-    //   delta_b -= 3. * pvecback[pba->index_bg_H]*pvecback[pba->index_bg_a]*alpha;
-    //   theta_b += k*k*alpha;
-
-    //   if (pba->has_ur == _TRUE_) {
-    //     delta_ur -= 4. * pvecback[pba->index_bg_H]*pvecback[pba->index_bg_a]*alpha;
-    //     theta_ur += k*k*alpha;
-    //   }
-
-    //   if (pba->has_dr == _TRUE_) {
-    //     delta_dr += (-4.*a*H+a*pba->Gamma_dcdm*pvecback[pba->index_bg_rho_dcdm]/pvecback[pba->index_bg_rho_dr])*alpha;
-
-    //     theta_dr += k*k*alpha;
-    //   }
-
-    //   if (pba->has_cdm == _TRUE_) {
-    //     delta_cdm -= 3. * pvecback[pba->index_bg_H]*pvecback[pba->index_bg_a]*alpha;
-    //     theta_cdm += k*k*alpha;
-    //   }
-
-    //   // TK added GDM here. I figure this looks like 3(1+w)*H*a*alpha
-    //   if (pba->has_gdm == _TRUE_) {
-    //     delta_gdm -= 3.*(1+pba->w_gdm) * pvecback[pba->index_bg_H]*pvecback[pba->index_bg_a]*alpha;
-    //     if (delta_gdm ==0.0)
-    //     {
-    //     printf("delta_gdm after 6770~ after subtraction = %e \n", delta_gdm);
-    //     }
-    //     theta_gdm += k*k*alpha;
-    //   }
-
-    //   if (pba->has_ncdm == _TRUE_) {
-    //     for(n_ncdm=0; n_ncdm < pba->N_ncdm; n_ncdm++){
-    //       /** - --> Do gauge transformation of delta, deltaP/rho (?) and theta using -= 3aH(1+w_ncdm) alpha for delta. */
-    //     }
-    //   }
-
-    //   if (pba->has_dcdm == _TRUE_) {
-    //     delta_dcdm += alpha*(-a*pba->Gamma_dcdm-3.*a*H);
-    //     theta_dcdm += k*k*alpha;
-    //   }
-
-    //   if (pba->has_scf == _TRUE_) {
-    //     delta_scf += alpha*(-3.0*H*(1.0+pvecback[pba->index_bg_p_scf]/pvecback[pba->index_bg_rho_scf]));
-    //     theta_scf += k*k*alpha;
-    //   }
-
-    // }
     //    fprintf(ppw->perturb_output_file," ");
     /** - --> Handle (re-)allocation */
     if (ppt->scalar_perturbations_data[ppw->index_ikout] == NULL){
@@ -7242,6 +7247,7 @@ int perturb_derivs(double tau,
                    void * parameters_and_workspace,
                    ErrorMsg error_message
                    ) {
+
   /** Summary: */
 
   /** - define local variables */
@@ -7888,9 +7894,15 @@ int perturb_derivs(double tau,
     if (pba->has_gdm == _TRUE_) {
 
       class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+      if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
+        printf("derivs\na = %e \t w_gdm = %e \n",a,w_gdm);
+      }
       w_prime_gdm = dw_over_da_gdm * a_prime_over_a * a;
 
       cg2 = w_gdm - w_prime_gdm / 3. / (1.+w_gdm) / a_prime_over_a; 
+      // printf("---------------------------------------------c^2_adiabatic for GDM = %e\n", cg2);
+      // if (cg2 > 10) cg2 = 10;
+      // if (cg2 < -10) cg2 = -10;
 
       // if(w_gdm<0.33){
       // w(t) equations 
@@ -8447,6 +8459,7 @@ int perturb_tca_slip_and_shear(double * y,
                                void * parameters_and_workspace,
                                ErrorMsg error_message
                                ) {
+
   /** Summary: */
 
   /** - define local variables */
@@ -8752,6 +8765,7 @@ int perturb_rsa_delta_and_theta(
                                 double * pvecthermo,
                                 struct perturb_workspace * ppw
                                 ) {
+
   /* - define local variables */
 
   double k2;

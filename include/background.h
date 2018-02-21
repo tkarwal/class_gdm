@@ -215,7 +215,6 @@ struct background
   /* TK added stuff for keeping track of GDM */
   int index_bg_rho_gdm;       /**< GDM density */
   int index_bg_w_gdm;         /**< GDM equation of state */
-  // TK look here add the following? 
   int index_bg_dw_gdm;         /**< derivative of GDM equation of state */
  
   // TK look here add this for GDM too? 

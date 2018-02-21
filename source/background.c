@@ -322,12 +322,13 @@ int background_functions(
     /* get w_gdm from dedicated function */
     class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, pba->error_message);
     pvecback[pba->index_bg_w_gdm] = w_gdm;
+    pvecback[pba->index_bg_w_gdm] = dw_over_da_gdm/(1.+w_gdm);
 
     rho_tot += pvecback[pba->index_bg_rho_gdm];
     p_tot += w_gdm * pvecback[pba->index_bg_rho_gdm];
 
-    if ( w_gdm > 0.33 && w_gdm < 0.34)rho_r += pvecback[pba->index_bg_rho_gdm];
-    else rho_m += pvecback[pba->index_bg_rho_gdm];
+    if ( (w_gdm > 0.33) && (w_gdm < 0.34) )rho_r += pvecback[pba->index_bg_rho_gdm];
+    else if (w_gdm < 0.33)rho_m += pvecback[pba->index_bg_rho_gdm];
   }
 
   /* dcdm */
@@ -532,9 +533,17 @@ int background_w_gdm(
         Recfast does not assume anything */
 
     interpolate_w_gdm_at_a(pba,a_rel,&w,&dw);
-    if ( (w == -1.) || (w == 0.) ){
-      w += 1e-10;
+    if ( abs(w-1e-5) < 1e-10 ){
+      printf("background\na = %e \t w_gdm = %e \n",a,w);
+      printf("%e\n", (w-1e-5));
     }
+
+    // if ( (w == -1.) || (w == 0.) ){
+      w += 1e-10;
+      dw += 1e-10;
+    // }
+    // w=0.00001;
+    // dw=0.0;
     *w_gdm = w; // why is this off by 1e-10? Is this to ensure it never exactly zero / -1 ? 
     *dw_over_da_gdm = dw;
     *integral_gdm=0; //will be computed later in background_init once and for all;
@@ -1600,8 +1609,9 @@ int background_indices(
 
   /* TK added this to initialise index for rho_gdm */
   /* - index for rho_gdm */
-  class_define_index(pba->index_bg_rho_gdm,_TRUE_,index_bg,1);
+  class_define_index(pba->index_bg_rho_gdm,pba->has_gdm,index_bg,1);
   class_define_index(pba->index_bg_w_gdm,pba->has_gdm,index_bg,1);
+  class_define_index(pba->index_bg_dw_gdm,pba->has_gdm,index_bg,1);
 
 
   /* - indices for ncdm. We only define the indices for ncdm1
@@ -2764,7 +2774,7 @@ int background_initial_conditions(
     double tmp_integral = 0;
     class_call(romberg_integrate_w_gdm(pba,log10(a),0,30,1e-4,&tmp_integral,is_log),pba->error_message, pba->error_message);
     // if(pba->w_fld_parametrization == w_free_function) class_call(simpson_integrate_w_free_function(pba,-14,-3,1e6,&integral_fld),pba->error_message, pba->error_message);
-    integral_fld=log(10)*tmp_integral; //log10 to log natural conversion
+    integral_gdm=log(10)*tmp_integral; //log10 to log natural conversion
       // is_log = _FALSE_;
       // class_call(romberg_integrate_w_gdm(pba,1e-3,pba->a_today,30,1e-3,&tmp_integral,is_log),pba->error_message, pba->error_message);
       // integral_fld+=tmp_integral;
@@ -2772,6 +2782,10 @@ int background_initial_conditions(
 
     /* rho_gdm at initial time */
     pvecback_integration[pba->index_bi_rho_gdm] = rho_gdm_today * exp(integral_gdm);
+    printf("initial rho_gdm %e\n", pvecback_integration[pba->index_bi_rho_gdm] );
+    printf("rho_gdm today %e\n", rho_gdm_today );
+    printf("exp integral %e\n", exp(integral_gdm) );
+
 
   }  
 
@@ -2879,6 +2893,7 @@ int background_output_titles(struct background * pba,
   // TK this is where sequence of columns has to match with output data
   class_store_columntitle(titles,"(.)rho_gdm",pba->has_gdm);
   class_store_columntitle(titles,"(.)w_gdm",pba->has_gdm);
+  class_store_columntitle(titles,"(.)dw_gdm",pba->has_gdm);
   if (pba->has_ncdm == _TRUE_){
     for (n=0; n<pba->N_ncdm; n++){
       sprintf(tmp,"(.)rho_ncdm[%d]",n);
@@ -2945,6 +2960,7 @@ int background_output_data(
     // TK This is where the sequence of columns has to match with output titles 
     class_store_double(dataptr,pvecback[pba->index_bg_rho_gdm],pba->has_gdm,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_w_gdm],pba->has_gdm,storeidx);
+    class_store_double(dataptr,pvecback[pba->index_bg_dw_gdm],pba->has_gdm,storeidx);
 
     if (pba->has_ncdm == _TRUE_){
       for (n=0; n<pba->N_ncdm; n++){
