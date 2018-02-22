@@ -47,6 +47,11 @@ cdef extern from "class.h":
         double age
         double conformal_age
         double * m_ncdm_in_eV
+        double * Omega_fld_ac
+        double * Omega_many_fld
+        double * m_fld
+        double * alpha_fld
+        double * omega_axion
         double Neff
         double Omega0_g
         double Omega0_b

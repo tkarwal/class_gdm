@@ -79,6 +79,8 @@
  */
 
 #include "background.h"
+#include "gsl/gsl_sf_hyperg.h"
+#include "gsl/gsl_sf_gamma.h"
 
 /**
  * Background quantities at given conformal time tau.
@@ -134,7 +136,6 @@ int background_at_tau(
       pvecback_size=pba->bg_size;
     }
   }
-
   /** - interpolate from pre-computed table with array_interpolate()
       or array_interpolate_growing_closeby() (depending on
       interpolation mode) */
@@ -422,7 +423,7 @@ int background_functions(
       /* get w_fld from dedicated function */
       class_call(background_w_fld(pba,a,&w_fld,&dw_over_da,&integral_fld,n), pba->error_message, pba->error_message);
       pvecback[pba->index_bg_w_fld+n] = w_fld;
-      pvecback[pba->index_bg_dw_fld+n] = dw_over_da/(1+w_fld);
+      pvecback[pba->index_bg_dw_fld+n] = dw_over_da;
       // printf("a %e w_fld %e \n",a,w_fld);
       // Obsolete: at the beginning, we had here the analytic integral solution corresponding to the case w=w0+w1(1-a/a0):
       // pvecback[pba->index_bg_rho_fld] = pba->Omega0_fld * pow(pba->H0,2) / pow(a_rel,3.*(1.+pba->w0_fld+pba->wa_fld)) * exp(3.*pba->wa_fld*(a_rel-1.));
@@ -828,8 +829,8 @@ int background_w_fld(
         Recfast does not assume anything */
   }
   else if(pba->w_fld_parametrization == pheno_axion){
-    w = (pba->n_pheno_axion[n]-1)/(1+pba->n_pheno_axion[n]);
-    *w_fld = (1+w)/(1+pow(pba->a_c[n]/a,3*(1+w)))-1+1e-10; //we add 1e-10 to avoid a crashing of the solver. Checked to be totally invisible.
+    w = (pba->n_pheno_axion[n]-1)/(1+pba->n_pheno_axion[n]); //e.o.s. once the field starts oscillating
+    *w_fld = (1+w)/(1+pow(pba->a_c[n]/a,3*(1+w)))-1+1e-15; //we add 1e-10 to avoid a crashing of the solver. Checked to be totally invisible.
     // *w_fld = (pow(a/ pba->a_today,6) - pow(pba->a_c/ pba->a_today,6))/(pow(a/ pba->a_today,6) + pow(pba->a_c/ pba->a_today,6));
     *dw_over_da_fld = 3*pow(a/pba->a_today,-1-3*(1+w))*pba->a_c[n]/ pba->a_today*(1+w)*(1+w)/pow((1 + pba->a_c[n]/pba->a_today*pow(a/ pba->a_today,-3*(1+w))),2);
     *integral_fld = -(3*(1 + w)*(3*w*log(a/pba->a_today) + log(pow(a/pba->a_today,3) + pow(pba->a_c[n]/ pba->a_today,3)*pow(pba->a_c[n]/a,3*w)))/(3 + 3*w));
@@ -839,7 +840,7 @@ int background_w_fld(
     z = 1/a-1;
     center = 1/pba->a_c[n]-1;
     width = 2*center/200;//found to work well at capturing the sharp transition
-    wbefore = -1;
+    wbefore = -1+1e-15;
     wafter = (pba->n_pheno_axion[n]-1)/(1+pba->n_pheno_axion[n]);
     *w_fld = (wbefore - wafter)*(tanh((z - center)/width) + 1)/2 + wafter;
     // *w_fld = (pow(a/ pba->a_today,6) - pow(pba->a_c/ pba->a_today,6))/(pow(a/ pba->a_today,6) + pow(pba->a_c/ pba->a_today,6));
@@ -858,8 +859,13 @@ int background_w_fld(
   else if(pba->w_fld_parametrization == w_free_function){
     if(pba->w_free_function_from_file == _TRUE_)interpolate_w_free_function_from_file_at_a(pba,a_rel,&w,&dw);
     else interpolate_w_free_function_at_a(pba,a_rel,&w,&dw);
-    *w_fld = w+1e-10;
-    *dw_over_da_fld = dw;
+    *w_fld = w;
+    if(pba->w_free_function_file_is_ca2 == _TRUE_){
+      *dw_over_da_fld = MAX(MIN(dw,pba->ca2_max),-1*pba->ca2_max);
+    }
+    else{
+      *dw_over_da_fld = dw;
+    }
     *integral_fld=0; //will be computed later in background_init once and for all;
   }
   // printf("a_rel %e %e %e %e\n",a_rel,*w_fld,*dw_over_da_fld,*integral_fld);
@@ -1290,6 +1296,14 @@ int background_init(
   double Neff;
   double w_fld, dw_over_da, integral_fld;
   int filenum=0;
+  /* vector of all background quantities */
+  double * pvecback;
+  /* necessary for calling array_interpolate(), but never used */
+  int last_index=0;
+  /* parameters required to get m_fld when playing with axion */
+  double tau_of_ac,p,F1_1,F1_2,cos_initial,sin_initial,wn,Eac,Omega_fld_ac,Omega0_fld,signArg,xc,Gac,f;
+  int i;
+  double n;
 
   /** - in verbose mode, provide some information */
   if (pba->background_verbose > 0) {
@@ -1400,8 +1414,103 @@ int background_init(
                pba->error_message,
                "Your choice for w(a--->0)=%g is suspicious, since it is bigger than -1/3 there cannot be radiation domination at early times\n",
                w_fld);
+
+
   }
 
+  if(pba->w_fld_parametrization == pheno_axion){
+
+    if(pba->axion_is_mu_and_alpha == _TRUE_){
+      printf("Here %e\n",pba->a_c[0]);
+      //We have passed mu and alpha so we need to assign Omega_ac, ac and omega_n. Only works with a single fluid.
+      if(pba->a_c[0]<(pba->Omega0_g+pba->Omega0_ur)/(pba->Omega0_b+pba->Omega0_cdm)){
+        p = 1./2;
+      }
+      else{
+        p = 2./3;
+      }
+
+
+      cos_initial = cos(pba->Theta_initial_fld[0]);
+      sin_initial = sin(pba->Theta_initial_fld[0]);
+      n = pba->n_pheno_axion[0];
+
+      if((n-1+n*cos_initial)>0){
+          signArg = 1.;
+      }
+      else{
+          signArg = -1.;
+      }
+
+      wn = (n-1)/(n+1);
+
+
+
+     // printf(" (pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[0],-4)+(pba->Omega0_b+pba->Omega0_cdm)*pow(pba->a_c[0],-3) %e pba->Omega_fld_ac[0] %e\n",(pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[0],-4)+(pba->Omega0_b+pba->Omega0_cdm)*pow(pba->a_c[0],-3),pba->Omega_fld_ac[0]);
+      pba->Omega_many_fld[0] = 2*pba->Omega_fld_ac[0]/(pow(pba->a_c[0],-3*wn-3)+1);
+      pba->Omega0_lambda -= pba->Omega_many_fld[0]; // we want a flat universe today.
+      pba->omega_axion[0] = pba->H0*sqrt(_PI_)*pow(2,-(n*n+1)/(2*n))*pow(2*pow(pba->a_c[0],3*(1+wn))*pba->Omega_fld_ac[0]/(1+pow(pba->a_c[0],3*(1+wn))),(n-1)/(2*n))*gsl_sf_gamma((n+1.)/(2*n))*pow(pba->m_fld[0]*pba->alpha_fld[0],1./n)/(pba->alpha_fld[0]*gsl_sf_gamma(1+1./(2*n)));
+      // printf("pba->Omega_many_fld[0] %e (pow(pba->a_c[0],-3*(wn+1))+1) %e wn %e\n",pba->Omega_many_fld[0],pow(pba->a_c[0],-3*wn-3)+1);
+    }
+    else{
+      for(i =0 ;i<pba->n_fld;i++){
+
+        if(pba->a_c[i]<(pba->Omega0_g+pba->Omega0_ur)/(pba->Omega0_b+pba->Omega0_cdm)){
+          p = 1./2;
+        }
+        else{
+          p = 2./3;
+        }
+
+          if((n-1+n*cos_initial)>0){
+              signArg = 1.;
+          }
+          else{
+              signArg =-1.;
+          }
+
+
+        cos_initial = cos(pba->Theta_initial_fld[i]);
+        sin_initial = sin(pba->Theta_initial_fld[i]);
+        n = pba->n_pheno_axion[i];
+        wn = (n-1)/(n+1);
+
+
+        if(pba->Omega0_fld!=0 || pba->Omega_many_fld[i] != 0) Omega0_fld = pba->Omega0_fld;
+        else Omega0_fld = pba->Omega_many_fld[i];
+        Omega_fld_ac = Omega0_fld/2*(pow(pba->a_c[i],-3*(wn+1))+1);
+
+        F1_1 = gsl_sf_hyperg_0F1(1./2*(1+3*p),signArg);
+        F1_2 = gsl_sf_hyperg_0F1(3./2*(1+p),signArg);
+        Eac = sqrt((pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[i],-4)+(pba->Omega0_b+pba->Omega0_cdm)*pow(pba->a_c[i],-3)+pba->Omega0_lambda+pba->Omega_fld_ac[i]);
+
+        xc = p/Eac;
+        f = 7./8;
+        // pba->m_fld[i] = sqrt(4/n*pow(Eac,2)*pow(pow(1-cos_initial,n-1)*fabs(1-n*cos_initial-n),-1)); //OLD
+        // pba->alpha_fld[i] =sqrt(3*pba->Omega_fld_ac/pow(pba->m_fld[i],2)*pow(
+        //   pow(1-cos(pba->Theta_initial_fld[i]+(-1+F1_1)*sin_initial/(-1+n+n*cos_initial)),n)
+        //  +2*n*pow(1-cos_initial,n-1)*pow(F1_2*sin_initial,2)/(pow(1+3*p,2)*fabs(1-n-n*cos_initial)),-1));
+        // pba->omega_axion[i] = pba->H0*sqrt(_PI_)*pow(2,-(n*n+1)/(2*n))*pow(2*pow(pba->a_c[i],3*(1+wn))*Omega_fld_ac/(1+pow(pba->a_c[i],3*(1+wn))),(n-1)/(2*n))*gsl_sf_gamma((n+1.)/(2*n))*pow(pba->m_fld[i]*pba->alpha_fld[i],1./n)/(pba->alpha_fld[i]*gsl_sf_gamma(1+1./(2*n)));
+
+
+        pba->m_fld[i] = pow(1-cos_initial,(1.-n)/2.)*sqrt((1-f)*(6*p+2)*pba->Theta_initial_fld[i]/(n*sin_initial))/xc;
+        pba->alpha_fld[i] = sqrt(6 * pba->Omega_fld_ac[i])/pba->m_fld[i]/pow(1-cos_initial,n/2);
+
+        Gac =sqrt(_PI_)*gsl_sf_gamma((n+1.)/(2*n))/gsl_sf_gamma(1+1./(2*n))*pow(2,-(n*n+1)/(2*n))*pow(3,0.5*(1./n-1))
+        *pow(pba->a_c[i],3-6./(1+n))*pow(pow(pba->a_c[i],6*n/(1+n))+1,0.5*(1./n-1));
+
+        pba->omega_axion[i] = pba->H0*pba->m_fld[i]*pow(1-cos_initial,0.5*(n-1))*Gac;
+
+
+        // printf("pba->m_fld %e pba->alpha_fld %e pba->omega_axion[i] %e Gac  %e  \n", pba->m_fld[i],pba->alpha_fld[i],pba->omega_axion[i]*pow(pba->a_c[i],-3*wn)*pba->a_c[i],Gac);
+      }
+    }
+
+
+
+
+
+  }
   /* in verbose mode, inform the user about the value of the ncdm
      masses in eV and about the ratio [m/omega_ncdm] in eV (the usual
      93 point something)*/
@@ -1428,6 +1537,11 @@ int background_init(
   class_call(background_solve(ppr,pba),
              pba->error_message,
              pba->error_message);
+
+
+
+
+
 
   return _SUCCESS_;
 
@@ -2327,6 +2441,9 @@ int background_solve(
   int last_index=0;
   /* comoving radius coordinate in Mpc (equal to conformal distance in flat case) */
   double comoving_radius=0.;
+  /* parameters required to get m_fld when playing with axion */
+  double tau_of_ac;
+  int n;
 
   bpaw.pba = pba;
   class_alloc(pvecback,pba->bg_size*sizeof(double),pba->error_message);
@@ -2552,6 +2669,8 @@ int background_solve(
                *pba->background_table[pba->index_bg_rho_crit]
                -pba->background_table[pba->index_bg_rho_g])
     /(7./8.*pow(4./11.,4./3.)*pba->background_table[pba->index_bg_rho_g]);
+
+
 
   /** - done */
   if (pba->background_verbose > 0) {
@@ -2909,8 +3028,19 @@ int background_output_titles(struct background * pba,
       class_store_columntitle(titles,tmp,_TRUE_);
       sprintf(tmp,"(.)w_fld[%d]",n);
       class_store_columntitle(titles,tmp,_TRUE_);
+      if(pba->w_free_function_file_is_ca2 == _TRUE_){
+        sprintf(tmp,"(.)ca2_fld[%d]",n);
+        class_store_columntitle(titles,tmp,_TRUE_);
+      }
+      else if(pba->w_free_function_file_is_dw_over_1_p_w == _TRUE_){
+        sprintf(tmp,"(.)dw_over_w_fld[%d]",n);
+        class_store_columntitle(titles,tmp,_TRUE_);
+      }
+      else{
       sprintf(tmp,"(.)dw_fld[%d]",n);
       class_store_columntitle(titles,tmp,_TRUE_);
+      }
+
     }
   }
   class_store_columntitle(titles,"(.)rho_ur",pba->has_ur);
@@ -2973,7 +3103,15 @@ int background_output_data(
       for (n=0; n<pba->n_fld; n++){
         class_store_double(dataptr,pvecback[pba->index_bg_rho_fld+n],pba->has_fld,storeidx);
         class_store_double(dataptr,pvecback[pba->index_bg_w_fld+n],pba->has_fld,storeidx);
-        class_store_double(dataptr,pvecback[pba->index_bg_dw_fld+n],pba->has_fld,storeidx);
+        if(pba->w_free_function_file_is_dw_over_1_p_w == _TRUE_){
+          class_store_double(dataptr,pvecback[pba->index_bg_dw_fld+n],pba->has_fld,storeidx);
+        }
+        else if(pba->w_free_function_file_is_ca2 == _TRUE_){
+          class_store_double(dataptr,pvecback[pba->index_bg_dw_fld+n],pba->has_fld,storeidx);
+        }
+        else {
+          class_store_double(dataptr,pvecback[pba->index_bg_dw_fld+n],pba->has_fld,storeidx);
+        }
       }
     }
 

@@ -55,7 +55,7 @@ struct background
   double w0_fld; /**< \f$ w0_{DE} \f$: current fluid equation of state parameter */
   double wa_fld; /**< \f$ wa_{DE} \f$: fluid equation of state parameter derivative */
   short  fld_has_perturbations;
-
+  double ca2_max; /**< max value for ca2 when using a function from a file with divergences */
   double cs2_fld; /**< \f$ c^2_{s~DE} \f$: sound speed of the fluid
 		     in the frame comoving with the fluid (so, this is
 		     not [delta p/delta rho] in the synchronous or
@@ -108,6 +108,8 @@ struct background
   double * w_free_function_ddd_at_knot;
   short w_free_function_table_is_log;
   short w_free_function_from_file;
+  short w_free_function_file_is_dw_over_1_p_w;
+  short w_free_function_file_is_ca2;
   double w_free_function_logz_interpolation_above_z;
   short w_free_function_interpolation_is_linear;
   // double * w_free_function_dd_density_at_knot;
@@ -364,7 +366,14 @@ struct background
   //@{
   enum w_fld_parametrization w_fld_parametrization;
   int n_fld;
+  short axion_is_mu_and_alpha;
+  double * m_fld;
+  double * alpha_fld;
+  double * Theta_initial_fld;
+  double * omega_axion;
+  double * Omega_fld_ac;
   double * a_c;
+  double a_c_to_shoot;
   double * n_pheno_axion;
   //@}
 
