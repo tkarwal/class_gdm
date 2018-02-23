@@ -616,6 +616,7 @@ int w_gdm_init( struct precision *ppr,
     //   printf("pba->w_gdm_at_knot %e\n",pba->w_gdm_at_knot[i]);
     // }
    return _SUCCESS_;
+
 }
 
 // This function only tells romberg what to integrate - literally just gives it the integrand 
@@ -769,9 +770,7 @@ int interpolate_w_gdm_at_a(
   // *intw_fld = 0;
   // printf("a %e z %e w_gdm %e dw_gdm %e ddwgdm %e  dddwgdm %e \n",a,z,*w_gdm,*dw_gdm,result[2],result[3]);
   return _SUCCESS_;
-}
-
-
+    }
 
 
 /**

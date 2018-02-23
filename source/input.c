@@ -768,17 +768,17 @@ int input_read_parameters(
     // if (flag1 == _TRUE_)
     //   pba->w_gdm = param1;
 
-    class_call(parser_read_double(pfc,"w0_gdm",&param1,&flag1,errmsg),
-               errmsg,
-               errmsg);
-    if (flag1 == _TRUE_)
-      pba->w0_gdm = param1;
+    // class_call(parser_read_double(pfc,"w0_gdm",&param1,&flag1,errmsg),
+    //            errmsg,
+    //            errmsg);
+    // if (flag1 == _TRUE_)
+    //   pba->w0_gdm = param1;
 
-    class_call(parser_read_double(pfc,"wa_gdm",&param1,&flag1,errmsg),
-               errmsg,
-               errmsg);
-    if (flag1 == _TRUE_)
-      pba->wa_gdm = param1;
+    // class_call(parser_read_double(pfc,"wa_gdm",&param1,&flag1,errmsg),
+    //            errmsg,
+    //            errmsg);
+    // if (flag1 == _TRUE_)
+    //   pba->wa_gdm = param1;
 
     // For the GDM effective sound speed ceff2_gdm
     class_call(parser_read_double(pfc,"ceff2_gdm",&param1,&flag1,errmsg),
@@ -819,6 +819,65 @@ int input_read_parameters(
     // }
 
     Omega_tot += pba->Omega0_gdm;
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // // TK look here do we want this? 
+    // class_call(parser_read_string(pfc,
+    //                               "w_gdm_is_dw_over_1_p_w",
+    //                               &(string2),
+    //                               &(flag2),
+    //                               errmsg),
+    //            errmsg,
+    //            errmsg);
+
+    // if (flag2 == _TRUE_) {
+    //   if ((strstr(string2,"y") != NULL) || (strstr(string2,"Y") != NULL)) {
+    //     pba->w_gdm_is_dw_over_1_p_w = _TRUE_;
+    //   }
+    //   else {
+    //     if ((strstr(string2,"n") != NULL) || (strstr(string2,"N") != NULL)) {
+    //       pba->w_gdm_is_dw_over_1_p_w = _FALSE_;
+    //     }
+    //     else {
+    //       class_stop(errmsg,"incomprehensible input '%s' for the field 'w_gdm_is_dw_over_1_p_w'",string2);
+    //     }
+    //   }
+    // }
+    // else {
+    //   pba->w_gdm_is_dw_over_1_p_w=_FALSE_;
+    // }
+
+    // class_call(parser_read_string(pfc,
+    //                               "w_gdm_is_cg2",
+    //                               &(string2),
+    //                               &(flag2),
+    //                               errmsg),
+    //            errmsg,
+    //            errmsg);
+
+    // if (flag2 == _TRUE_) {
+    //   if ((strstr(string2,"y") != NULL) || (strstr(string2,"Y") != NULL)) {
+    //     pba->w_gdm_is_cg2 = _TRUE_;
+    //   }
+    //   else {
+    //     if ((strstr(string2,"n") != NULL) || (strstr(string2,"N") != NULL)) {
+    //       pba->w_gdm_is_cg2 = _FALSE_;
+    //     }
+    //     else {
+    //       class_stop(errmsg,"incomprehensible input '%s' for the field 'w_gdm_is_cg2'",string2);
+    //     }
+    //   }
+    // }
+    // else {
+    //   pba->w_gdm_is_cg2=_FALSE_;
+    // }
+
+    // // TK look here make this a parameter later? 
+    // class_read_double("cg2_max",pba->cg2_max); // Max allowed value of adiabatic sound speed of gdm
+    // // not added to pba yet
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
     // TK added w_gdm free function stuff here 
     class_read_double("w_gdm_number_of_knots",pba->w_gdm_number_of_knots); // number of rows (z values) of w_gdm 
@@ -3504,8 +3563,8 @@ int input_default_params(
 
   /* TK added */
   // pba->w_gdm = 0.;
-  pba->w0_gdm = -0.9;
-  pba->wa_gdm = 0.;
+  // pba->w0_gdm = -0.9;
+  // pba->wa_gdm = 0.;
   pba->Omega0_gdm = 0.;
   // TK added w_gdm array stuff here 
   pba->w_gdm_number_of_knots = 0;

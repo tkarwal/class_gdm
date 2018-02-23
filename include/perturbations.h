@@ -247,7 +247,6 @@ struct perturbs
   short has_source_delta_cdm;  /**< do we need source for delta of cold dark matter? */
   /* TK added GDM here */
   short has_source_delta_gdm;   /**< do we need source for delta of generalised dark matter? */
-
   short has_source_delta_dcdm; /**< do we need source for delta of DCDM? */
   short has_source_delta_fld;  /**< do we need source for delta of dark energy? */
   short has_source_delta_scf;  /**< do we need source for delta from scalar field? */
@@ -260,7 +259,6 @@ struct perturbs
   short has_source_theta_cdm;  /**< do we need source for theta of cold dark matter? */
   /* TK added GDM here */
   short has_source_theta_gdm;   /**< do we need source for theta of generalised dark matter? */
-
   short has_source_theta_dcdm; /**< do we need source for theta of DCDM? */
   short has_source_theta_fld;  /**< do we need source for theta of dark energy? */
   short has_source_theta_scf;  /**< do we need source for theta of scalar field? */
@@ -290,7 +288,6 @@ struct perturbs
   int index_tp_delta_cdm; /**< index value for delta of cold dark matter */
   /* TK added GDM here */
   int index_tp_delta_gdm; /**< index value for delta of generalised dark matter */
-
   int index_tp_delta_dcdm;/**< index value for delta of DCDM */
   int index_tp_delta_fld;  /**< index value for delta of dark energy */
   int index_tp_delta_scf;  /**< index value for delta of scalar field */
@@ -306,7 +303,6 @@ struct perturbs
   int index_tp_theta_cdm;  /**< index value for theta of cold dark matter */
   /* TK added GDM here */
   int index_tp_theta_gdm;  /**< index value for theta of generalised dark matter */
-
   int index_tp_theta_dcdm; /**< index value for theta of DCDM */
   int index_tp_theta_fld;  /**< index value for theta of dark energy */
   int index_tp_theta_scf;  /**< index value for theta of scalar field */

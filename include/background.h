@@ -71,8 +71,8 @@ struct background
 
    /** - TK added GDM parameters here */
   // double w_gdm; /*** eq of state parameter of the GDM */
-  double w0_gdm; /**< \f$ w0_{DE} \f$: current fluid equation of state parameter */
-  double wa_gdm; /**< \f$ wa_{DE} \f$: fluid equation of state parameter derivative */
+  // double w0_gdm; /**< \f$ w0_{DE} \f$: current fluid equation of state parameter */
+  // double wa_gdm; /**< \f$ wa_{DE} \f$: fluid equation of state parameter derivative */
   double ceff2_gdm; /*** effective sound speed of the GDM */
   double cvis2_gdm; /*** viscosity parameter of the GDM */
   double Omega0_gdm; /*** fractional energy density today of the GDM */
@@ -299,7 +299,6 @@ struct background
   int index_bi_rho_fld; /**< {B} fluid density */
   int index_bi_phi_scf;       /**< {B} scalar field value */
   int index_bi_phi_prime_scf; /**< {B} scalar field derivative wrt conformal time */
-
   // TK added GDM here 
   int index_bi_rho_gdm; /**< {B} GDM density */
 
@@ -615,13 +614,13 @@ extern "C" {
                                          // double /*desired accuracy*/ acc,
                                          double *intw_fld);
  int romberg_integrate_w_free_function(struct background * pba,
-                                         double /*lower limit*/ a,
-                                         double /*upper limit*/ b,
-                                         size_t max_steps,
-                                         double /*desired accuracy*/ acc,
-                                         double *intw_fld,
-                                         int is_log,
-                                         int n_fld);
+                                       double /*lower limit*/ a,
+                                       double /*upper limit*/ b,
+                                       size_t max_steps,
+                                       double /*desired accuracy*/ acc,
+                                       double *intw_fld,
+                                       int is_log,
+                                       int n_fld);
   int interpolate_w_free_function_from_file_at_a(
                                                   struct background * pba,
                                                   double a,
@@ -637,25 +636,23 @@ extern "C" {
  int interpolate_w_gdm_at_a(
                           struct background * pba,
                           double a,
-                          double *w_fld,
-                          double *dw_fld
+                          double *w_gdm,
+                          double *dw_gdm
                         );
- int w_gdm_init(
-                          struct precision *ppr,
-                          struct background *pba
+ int w_gdm_init(struct precision *ppr,
+                struct background *pba
                         );
  int romberg_integrate_w_gdm(struct background * pba,
-                                         double /*lower limit*/ a,
-                                         double /*upper limit*/ b,
-                                         size_t max_steps,
-                                         double /*desired accuracy*/ acc,
-                                         double *intw_fld,
-                                         int is_log);
+                             double /*lower limit*/ a,
+                             double /*upper limit*/ b,
+                             size_t max_steps,
+                             double /*desired accuracy*/ acc,
+                             double *intw_gdm,
+                             int is_log);
 
  double integrand_w_gdm(struct background * pba,
-                                    double a,
-                                    int is_log,
-                                    int n_fld);
+                        double a,
+                        int is_log);
 
 
 #ifdef __cplusplus
