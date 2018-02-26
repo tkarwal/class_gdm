@@ -329,7 +329,7 @@ int background_functions(
     p_tot += w_gdm * pvecback[pba->index_bg_rho_gdm];
 
     if ( (w_gdm > 0.33) && (w_gdm < 0.34) )rho_r += pvecback[pba->index_bg_rho_gdm];
-    else if (w_gdm < 0.33)rho_m += pvecback[pba->index_bg_rho_gdm];
+    else if (w_gdm < 0.33 && w_gdm > 0.)rho_m += pvecback[pba->index_bg_rho_gdm];
   }
 
   /* dcdm */
@@ -3216,7 +3216,7 @@ int background_derivs(
     /** - Compute gdm density \f$ \rho' = -3aH (1+w_{gdm}(a)) \rho \f$ */
     class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, pba->error_message);
     dy[pba->index_bi_rho_gdm] = -3.*y[pba->index_bi_a]*pvecback[pba->index_bg_H]*(1.+pvecback[pba->index_bg_w_gdm])*y[pba->index_bi_rho_gdm];
-    if(w_gdm < 0.33) { rho_M += pvecback[pba->index_bg_rho_gdm]; }
+    if(w_gdm < 0.33 && w_gdm > 0.) { rho_M += pvecback[pba->index_bg_rho_gdm]; }
   } 
 
 
