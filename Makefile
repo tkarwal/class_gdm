@@ -75,7 +75,7 @@ endif
 #===============================================================================
 # GSL lib
 #===============================================================================
-CCFLAG += -lgsl -lgslcblas -lm
+CCFLAG += -lm # -lgsl -lgslcblas 
 #LDFLAGS= -lgsl
 #LIBS= -lgsl
 INCLUDES += -I/usr/local/include
@@ -150,7 +150,7 @@ libclass.a: $(TOOLS) $(SOURCE) $(EXTERNAL)
 	$(AR)  $@ $(addprefix build/, $(TOOLS) $(SOURCE) $(EXTERNAL))
 
 class: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(CLASS)
-	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o class $(addprefix build/,$(notdir $^)) -lm -lgsl
+	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o class $(addprefix build/,$(notdir $^)) -lm #-lgsl
 
 test_sigma: $(TOOLS) $(SOURCE) $(EXTERNAL) $(OUTPUT) $(TEST_SIGMA)
 	$(CC) $(OPTFLAG) $(OMPFLAG) $(LDFLAG) -o test_sigma $(addprefix build/,$(notdir $^)) -lm

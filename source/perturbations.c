@@ -2539,6 +2539,7 @@ int perturb_prepare_output(struct background * pba,
       class_store_columntitle(ppt->scalar_titles,"theta_b",_TRUE_);
       class_store_columntitle(ppt->scalar_titles,"psi",_TRUE_);
       class_store_columntitle(ppt->scalar_titles,"phi",_TRUE_);
+      // class_store_columntitle(ppt->scalar_titles,"phi_prime_plus_psi_prime",_TRUE_);
       /* Perturbed recombination */
       class_store_columntitle(ppt->scalar_titles,"delta_Tb",ppt->has_perturbed_recombination);
       class_store_columntitle(ppt->scalar_titles,"delta_chi",ppt->has_perturbed_recombination);
@@ -4506,6 +4507,7 @@ int perturb_initial_conditions(struct precision * ppr,
 
         // Initial condition from dark energy with non-adiabatic sound speed paper 1004.5509
         theta_gdm = -k*ktau_three / 4. * ppt->ceff2_gdm / (4. - 6.*w_gdm + 3.*ppt->ceff2_gdm);
+        printf("theta_gdm initial = %e\n" , theta_gdm);
         // problem with above is that it's for constant w and no shear 
 
 
@@ -6793,6 +6795,7 @@ int perturb_print_variables(double tau,
   double q,q2,epsilon;
   /** - ncdm sector ends */
   double phi=0.,psi=0.,alpha=0.;
+  // double phi_prime_plus_psi_prime=0.;
   double delta_temp=0., delta_chi=0.;
   double w_fld,dw_over_da_fld,integral_fld,w_prime_fld,cs2,ca2;
   double w_gdm,dw_over_da_gdm,integral_gdm,w_prime_gdm,cg2;
@@ -7003,14 +7006,19 @@ int perturb_print_variables(double tau,
 
       psi = pvecback[pba->index_bg_H]*pvecback[pba->index_bg_a] * alpha + pvecmetric[ppw->index_mt_alpha_prime];
       phi = y[ppw->pv->index_pt_eta] - pvecback[pba->index_bg_H]*pvecback[pba->index_bg_a]*alpha;
+      // phi_prime_plus_psi_prime = 0.;
     }
     else if (ppt->gauge == newtonian){
       psi = pvecmetric[ppw->index_mt_psi];
       phi = y[ppw->pv->index_pt_phi];
+      // phi_prime_plus_psi_prime = 0.;
+
     }
     else{
       psi = 0.0;
       phi = 0.0;
+      // phi_prime_plus_psi_prime = 0.;
+
     }
 
     if (pba->has_ncdm == _TRUE_) {
@@ -7262,6 +7270,7 @@ int perturb_print_variables(double tau,
     class_store_double(dataptr, theta_b, _TRUE_, storeidx);
     class_store_double(dataptr, psi, _TRUE_, storeidx);
     class_store_double(dataptr, phi, _TRUE_, storeidx);
+    // class_store_double(dataptr, phi_prime_plus_psi_prime, _TRUE_, storeidx);
     /* perturbed recombination */
     class_store_double(dataptr, delta_temp, ppt->has_perturbed_recombination, storeidx);
     class_store_double(dataptr, delta_chi, ppt->has_perturbed_recombination, storeidx);
