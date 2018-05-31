@@ -339,6 +339,7 @@ int background_functions(
     pvecback[pba->index_bg_ddV_scf] = ddV_scf(pba,phi); // ddV_scf(pba,phi); //potential'' as function of phi
     pvecback[pba->index_bg_rho_scf] = (phi_prime*phi_prime/(2*a*a) + V_scf(pba,phi))/3.; // energy of the scalar field. The field units are set automatically by setting the initial conditions
     pvecback[pba->index_bg_p_scf] =(phi_prime*phi_prime/(2*a*a) - V_scf(pba,phi))/3.; // pressure of the scalar field
+    pvecback[pba->index_bg_w_scf] = pvecback[pba->index_bg_p_scf]/pvecback[pba->index_bg_rho_scf]; // TK eq of motion of the scalar field 
     rho_tot += pvecback[pba->index_bg_rho_scf];
     p_tot += pvecback[pba->index_bg_p_scf];
     //divide relativistic & nonrelativistic (not very meaningful for oscillatory models)
@@ -840,6 +841,7 @@ int background_indices(
   class_define_index(pba->index_bg_ddV_scf,pba->has_scf,index_bg,1);
   class_define_index(pba->index_bg_rho_scf,pba->has_scf,index_bg,1);
   class_define_index(pba->index_bg_p_scf,pba->has_scf,index_bg,1);
+  class_define_index(pba->index_bg_w_scf,pba->has_scf,index_bg,1); // TK
 
   /* - index for Lambda */
   class_define_index(pba->index_bg_rho_lambda,pba->has_lambda,index_bg,1);
@@ -1940,11 +1942,11 @@ int background_initial_conditions(
       if (3.*pow(scf_lambda,2)-12. < 0){
         /** - --> If there is no attractor solution for scf_lambda, assign some value. Otherwise would give a nan.*/
     	pvecback_integration[pba->index_bi_phi_scf] = 1./scf_lambda;//seems to the work
-	if (pba->background_verbose > 0)
-	  printf(" No attractor IC for lambda = %.3e ! \n ",scf_lambda);
-      }
-      pvecback_integration[pba->index_bi_phi_prime_scf] = 2*pvecback_integration[pba->index_bi_a]*
-        sqrt(V_scf(pba,pvecback_integration[pba->index_bi_phi_scf]))*pba->phi_prime_ini_scf;
+    	if (pba->background_verbose > 0)
+    	  printf(" No attractor IC for lambda = %.3e ! \n ",scf_lambda);
+          }
+          pvecback_integration[pba->index_bi_phi_prime_scf] = 2*pvecback_integration[pba->index_bi_a]*
+            sqrt(V_scf(pba,pvecback_integration[pba->index_bi_phi_scf]))*pba->phi_prime_ini_scf;
     }
     else{
       printf("Not using attractor initial conditions\n");
@@ -2041,6 +2043,7 @@ int background_output_titles(struct background * pba,
 
   class_store_columntitle(titles,"(.)rho_scf",pba->has_scf);
   class_store_columntitle(titles,"(.)p_scf",pba->has_scf);
+  class_store_columntitle(titles,"w_scf",pba->has_scf); // TK
   class_store_columntitle(titles,"phi_scf",pba->has_scf);
   class_store_columntitle(titles,"phi'_scf",pba->has_scf);
   class_store_columntitle(titles,"V_scf",pba->has_scf);
@@ -2093,6 +2096,7 @@ int background_output_data(
 
     class_store_double(dataptr,pvecback[pba->index_bg_rho_scf],pba->has_scf,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_p_scf],pba->has_scf,storeidx);
+    class_store_double(dataptr,pvecback[pba->index_bg_w_scf],pba->has_scf,storeidx); //TK
     class_store_double(dataptr,pvecback[pba->index_bg_phi_scf],pba->has_scf,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_phi_prime_scf],pba->has_scf,storeidx);
     class_store_double(dataptr,pvecback[pba->index_bg_V_scf],pba->has_scf,storeidx);
@@ -2204,7 +2208,7 @@ int background_derivs(
     dy[pba->index_bi_phi_scf] = y[pba->index_bi_phi_prime_scf];
     dy[pba->index_bi_phi_prime_scf] = - y[pba->index_bi_a]*
       (2*pvecback[pba->index_bg_H]*y[pba->index_bi_phi_prime_scf]
-       + y[pba->index_bi_a]*dV_scf(pba,y[pba->index_bi_phi_scf])) ;
+       + y[pba->index_bi_a]*dV_scf(pba,y[pba->index_bi_phi_scf])) ; 
   }
 
 
@@ -2322,17 +2326,60 @@ double ddV_p_scf(
 double V_scf(
              struct background *pba,
              double phi) {
-  return  V_e_scf(pba,phi)*V_p_scf(pba,phi);
+
+  // TK added the karwal kamionkowski potential here 
+  if (pba->scf_parametrization == kar_kam ) {
+    double scf_beta  = pba->scf_parameters[0];
+    double scf_epsilon  = pba->scf_parameters[1];
+    // beta * Omega_m * a_eq^-3 * phi * 1/2*( tanh( beta*phi/epsilon ) + 1 )
+    return scf_beta
+    *(pba->Omega0_b+pba->Omega0_cdm)*pow( pba->Omega0_g/(pba->Omega0_b+pba->Omega0_cdm), -3)
+    *phi
+    *0.5*(tanh(scf_beta*phi/scf_epsilon) + 1.); 
+
+  }
+
+  else {
+    return  V_e_scf(pba,phi)*V_p_scf(pba,phi);
+  }
 }
 
 double dV_scf(
               struct background *pba,
 	      double phi) {
-  return dV_e_scf(pba,phi)*V_p_scf(pba,phi) + V_e_scf(pba,phi)*dV_p_scf(pba,phi);
+
+  // TK added the karwal kamionkowski potential here 
+  if (pba->scf_parametrization == kar_kam ) {
+    double scf_beta  = pba->scf_parameters[0];
+    double scf_epsilon  = pba->scf_parameters[1];
+    // beta * Omega_m * a_eq^-3 * 1/2*( tanh( beta*phi/epsilon ) + 1 )
+    return scf_beta
+    *(pba->Omega0_b+pba->Omega0_cdm)*pow( pba->Omega0_g/(pba->Omega0_b+pba->Omega0_cdm), -3)
+    *0.5*(tanh(scf_beta*phi/scf_epsilon) + 1.); 
+
+  }
+
+  else {
+    return dV_e_scf(pba,phi)*V_p_scf(pba,phi) + V_e_scf(pba,phi)*dV_p_scf(pba,phi);
+  }
+
 }
 
 double ddV_scf(
                struct background *pba,
                double phi) {
-  return ddV_e_scf(pba,phi)*V_p_scf(pba,phi) + 2*dV_e_scf(pba,phi)*dV_p_scf(pba,phi) + V_e_scf(pba,phi)*ddV_p_scf(pba,phi);
+
+  // TK added the karwal kamionkowski potential here 
+  if (pba->scf_parametrization == kar_kam ) {
+    double scf_beta  = pba->scf_parameters[0];
+    double scf_epsilon  = pba->scf_parameters[1];
+    // 0. 
+    return 0.; 
+
+  }
+
+  else {
+    return ddV_e_scf(pba,phi)*V_p_scf(pba,phi) + 2*dV_e_scf(pba,phi)*dV_p_scf(pba,phi) + V_e_scf(pba,phi)*ddV_p_scf(pba,phi);
+  }
+
 }

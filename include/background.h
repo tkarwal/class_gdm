@@ -12,6 +12,10 @@
 
 enum spatial_curvature {flat,open,closed};
 
+enum scf_parametrization {abl_sko, kar_kam}; /*** TK added scalar field parametrisation here. 
+                                                  Can be based on the Albrecht & Skordis paper 9908085
+                                                  Or based on our (Karwal & Kamionkowski) work */
+
 /**
  * All background parameters and evolution that other modules need to know.
  *
@@ -85,6 +89,9 @@ struct background
   //double scf_alpha;  /**< \f$ \alpha \f$ : Albrecht-Skordis polynomial slope */
   //double scf_B; /**< \f$ \alpha \f$ : Albrecht-Skordis field shift */
   //double scf_A; /**< \f$ \alpha \f$ : Albrecht-Skordis offset */
+  enum scf_parametrization scf_parametrization; /*** TK added scalar field parametrisation here. 
+                                                    Can be based on the Albrecht & Skordis paper 9908085
+                                                    Or based on our (Karwal & Kamionkowski) work */
 
   double Omega0_k; /**< \f$ \Omega_{0_k} \f$: curvature contribution */
 
@@ -174,6 +181,7 @@ struct background
   int index_bg_ddV_scf;       /**< scalar field potential second derivative V'' */
   int index_bg_rho_scf;       /**< scalar field energy density */
   int index_bg_p_scf;         /**< scalar field pressure */
+  int index_bg_w_scf;         /*** TK added scalar field eq of state parameter index here */
 
   int index_bg_rho_ncdm1;     /**< density of first ncdm species (others contiguous) */
   int index_bg_p_ncdm1;       /**< pressure of first ncdm species (others contiguous) */

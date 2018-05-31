@@ -1042,47 +1042,129 @@ int input_read_parameters(
 
   /* Additional SCF parameters: */
   if (pba->Omega0_scf != 0.){
-    /** - Read parameters describing scalar field potential */
-    class_call(parser_read_list_of_doubles(pfc,
-                                           "scf_parameters",
-                                           &(pba->scf_parameters_size),
-                                           &(pba->scf_parameters),
-                                           &flag1,
-                                           errmsg),
-               errmsg,errmsg);
-    class_read_int("scf_tuning_index",pba->scf_tuning_index);
-    class_test(pba->scf_tuning_index >= pba->scf_parameters_size,
-               errmsg,
-               "Tuning index scf_tuning_index = %d is larger than the number of entries %d in scf_parameters. Check your .ini file.",pba->scf_tuning_index,pba->scf_parameters_size);
-    /** - Assign shooting parameter */
-    class_read_double("scf_shooting_parameter",pba->scf_parameters[pba->scf_tuning_index]);
 
-    scf_lambda = pba->scf_parameters[0];
-    if ((fabs(scf_lambda) <3.)&&(pba->background_verbose>1))
-      printf("lambda = %e <3 won't be tracking (for exp quint) unless overwritten by tuning function\n",scf_lambda);
+    /* TK first read in which kind of a potential is wanted 
+       Can be based on the Albrecht & Skordis paper 9908085
+       Or based on our (Karwal & Kamionkowski) work */
+    class_call(parser_read_string(pfc,"scf_parametrization",&string1,&flag1,errmsg),
+              errmsg,
+              errmsg); 
+    // TK added the following to switch b/w scalar field potentials 
+    if (flag1 == _TRUE_){ // If scalar field parametrisation is specified and it's the karwal-kamionkowski field 
+      if( strstr(string1,"kar_kam") != NULL ){
 
-    class_call(parser_read_string(pfc,
-                                  "attractor_ic_scf",
-                                  &string1,
-                                  &flag1,
-                                  errmsg),
-                errmsg,
-                errmsg);
-
-    if (flag1 == _TRUE_){
-      if((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)){
-        pba->attractor_ic_scf = _TRUE_;
+        pba->scf_parametrization = kar_kam;
       }
-      else{
-        pba->attractor_ic_scf = _FALSE_;
-        class_test(pba->scf_parameters_size<2,
-               errmsg,
-               "Since you are not using attractor initial conditions, you must specify phi and its derivative phi' as the last two entries in scf_parameters. See explanatory.ini for more details.");
-        pba->phi_ini_scf = pba->scf_parameters[pba->scf_parameters_size-2];
-        pba->phi_prime_ini_scf = pba->scf_parameters[pba->scf_parameters_size-1];
+
+      else { 
+        pba->scf_parametrization = abl_sko;
       }
     }
-  }
+
+    else {
+      pba->scf_parametrization = abl_sko;
+    }
+
+
+    if (pba->scf_parametrization == kar_kam ) {
+
+        /** - Read parameters describing scalar field potential */
+        class_call(parser_read_list_of_doubles(pfc,
+                                               "scf_parameters",
+                                               &(pba->scf_parameters_size),
+                                               &(pba->scf_parameters),
+                                               &flag1,
+                                               errmsg),
+                   errmsg,errmsg);
+        // TK just read this list and store it. We'll call the parameters directly later
+
+        // TK ??????? Add to this area a print out of what's being read in eg. : 
+        // printf("Tuning index scf_tuning_index = %d is larger than the number of entries %d in scf_parameters. Check your .ini file.",pba->scf_tuning_index,pba->scf_parameters_size);
+        // Although background verbose already prints the scalar field parameters 
+
+        // TK hard setting non attractor initial conditions here 
+        // pba->attractor_ic_scf = _FALSE_;
+
+        class_call(parser_read_string(pfc,
+                                      "attractor_ic_scf",
+                                      &string1,
+                                      &flag1,
+                                      errmsg),
+                    errmsg,
+                    errmsg);
+
+        if (flag1 == _TRUE_){
+          if((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)){
+            pba->attractor_ic_scf = _TRUE_;
+          }
+          else{
+            pba->attractor_ic_scf = _FALSE_;
+            class_test(pba->scf_parameters_size<2,
+                   errmsg,
+                   "Since you are not using attractor initial conditions, you must specify phi and its derivative phi' as the last two entries in scf_parameters. See explanatory.ini for more details.");
+            pba->phi_ini_scf = pba->scf_parameters[pba->scf_parameters_size-2];
+            pba->phi_prime_ini_scf = pba->scf_parameters[pba->scf_parameters_size-1];
+          }
+        }
+
+        class_test(pba->scf_parameters_size<2,
+                   errmsg,
+                   "Since you are not using attractor initial conditions, you must specify phi and its derivative phi' as the last two entries in scf_parameters. See explanatory.ini for more details.");
+        pba->phi_ini_scf = pba->scf_parameters[pba->scf_parameters_size-2]; 
+        pba->phi_prime_ini_scf = pba->scf_parameters[pba->scf_parameters_size-1];
+
+    } // TK End read input for karwal-kamionkowski potential 
+
+
+    else {
+
+        /** - Read parameters describing scalar field potential */
+        class_call(parser_read_list_of_doubles(pfc,
+                                               "scf_parameters",
+                                               &(pba->scf_parameters_size),
+                                               &(pba->scf_parameters),
+                                               &flag1,
+                                               errmsg),
+                   errmsg,errmsg);
+        class_read_int("scf_tuning_index",pba->scf_tuning_index);
+        class_test(pba->scf_tuning_index >= pba->scf_parameters_size,
+                   errmsg,
+                   "Tuning index scf_tuning_index = %d is larger than the number of entries %d in scf_parameters. Check your .ini file.",pba->scf_tuning_index,pba->scf_parameters_size);
+        /** - Assign shooting parameter */
+        class_read_double("scf_shooting_parameter",pba->scf_parameters[pba->scf_tuning_index]);
+
+        scf_lambda = pba->scf_parameters[0];
+        if ((fabs(scf_lambda) <3.)&&(pba->background_verbose>1))
+          printf("lambda = %e <3 won't be tracking (for exp quint) unless overwritten by tuning function\n",scf_lambda);
+
+        class_call(parser_read_string(pfc,
+                                      "attractor_ic_scf",
+                                      &string1,
+                                      &flag1,
+                                      errmsg),
+                    errmsg,
+                    errmsg);
+
+        if (flag1 == _TRUE_){
+          if((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)){
+            pba->attractor_ic_scf = _TRUE_;
+          }
+          else{
+            pba->attractor_ic_scf = _FALSE_;
+            class_test(pba->scf_parameters_size<2,
+                   errmsg,
+                   "Since you are not using attractor initial conditions, you must specify phi and its derivative phi' as the last two entries in scf_parameters. See explanatory.ini for more details.");
+            pba->phi_ini_scf = pba->scf_parameters[pba->scf_parameters_size-2];
+            pba->phi_prime_ini_scf = pba->scf_parameters[pba->scf_parameters_size-1];
+          }
+        }
+
+    } // TK End read input for original CLASS potential 
+
+
+  } 
+
+
 
   /** (b) assign values to thermodynamics cosmological parameters */
 
@@ -2900,6 +2982,7 @@ int input_default_params(
   //MZ: initial conditions are as multiplicative factors of the radiation attractor values
   pba->phi_ini_scf = 1;
   pba->phi_prime_ini_scf = 1;
+  pba->scf_parametrization = abl_sko; // TK added this as the default parametrisation for the scalar field potential 
 
   pba->Omega0_k = 0.;
   pba->K = 0.;
@@ -3921,14 +4004,14 @@ int input_find_root(double *xzero,
   /** - Fisrt we do our guess */
   class_call(input_get_guess(&x1, &dxdy, pfzw, errmsg),
              errmsg, errmsg);
-  //      printf("x1= %g\n",x1);
+       printf("x1= %g\n",x1);
   class_call(input_fzerofun_1d(x1,
                                pfzw,
                                &f1,
                                errmsg),
                  errmsg, errmsg);
   (*fevals)++;
-  //printf("x1= %g, f1= %g\n",x1,f1);
+  // printf("x1= %g, f1= %g\n",x1,f1);
 
   dx = 1.5*f1*dxdy;
 
@@ -3940,8 +4023,8 @@ int input_find_root(double *xzero,
     for (iter2=1; iter2 <= 3; iter2++) {
       return_function = input_fzerofun_1d(x2,pfzw,&f2,errmsg);
       (*fevals)++;
-      //printf("x2= %g, f2= %g\n",x2,f2);
-      //fprintf(stderr,"iter2=%d\n",iter2);
+      printf("x2= %g, f2= %g\n",x2,f2);
+      // fprintf(stderr,"iter2=%d\n",iter2);
 
       if (return_function ==_SUCCESS_) {
         break;
