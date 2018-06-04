@@ -762,7 +762,7 @@ int perturb_indices_of_perturbs(
       class_define_index(ppt->index_tp_delta_cdm,  ppt->has_source_delta_cdm, index_type,1);
       /* TK added GDM here */
       class_define_index(ppt->index_tp_delta_gdm,  ppt->has_source_delta_gdm, index_type,1);
-      // class_define_index(ppt->index_tp_delta_p_over_rho_gdm,  ppt->has_source_delta_gdm, index_type,1);
+      // class_define_index(ppt->index_tp_delta_p_over_rho_gdm,  ppt->has_source_delta_gdm, index_type,1); // ???????????????
       class_define_index(ppt->index_tp_theta_m,    ppt->has_source_theta_m,   index_type,1);
       class_define_index(ppt->index_tp_delta_dcdm, ppt->has_source_delta_dcdm,index_type,1);
       class_define_index(ppt->index_tp_delta_fld,  ppt->has_source_delta_fld, index_type,pba->n_fld);
@@ -4264,12 +4264,12 @@ int perturb_initial_conditions(struct precision * ppr,
       // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
       //   printf("initial conditions\na = %e \t w_gdm = %e \n",a,w_gdm);
       // }
-      if (w_gdm < 0.33) {
+      if ((w_gdm < 0.33) && (w_gdm > -0.1)) { // ??????????? TK what do I do with this? These limits are currently hard coded 
           rho_m += ppw->pvecback[pba->index_bg_rho_gdm];
         }
-      else if (w_gdm > 0.33) {
+      else if ((w_gdm > 0.33) && (w_gdm < 0.4)) {
         rho_r += ppw->pvecback[pba->index_bg_rho_gdm];
-        rho_nu += ppw->pvecback[pba->index_bg_rho_gdm];
+        rho_nu += ppw->pvecback[pba->index_bg_rho_gdm]; 
 
       }
     }
@@ -4507,7 +4507,7 @@ int perturb_initial_conditions(struct precision * ppr,
 
         // Initial condition from dark energy with non-adiabatic sound speed paper 1004.5509
         theta_gdm = -k*ktau_three / 4. * ppt->ceff2_gdm / (4. - 6.*w_gdm + 3.*ppt->ceff2_gdm);
-        printf("theta_gdm initial = %e\n" , theta_gdm);
+        // printf("theta_gdm initial = %e\n" , theta_gdm);
         // problem with above is that it's for constant w and no shear 
 
 
@@ -7477,6 +7477,14 @@ int perturb_print_variables(double tau,
     else free(theta_fld);
   }
 
+  // TK add GDM here ??????? not a pointer so no, don't think it's necessary 
+  // if (pba->has_gdm == _TRUE_){
+  //   free(delta_gdm);
+  //   free(theta_gdm);
+  //   free(shear_gdm);
+  //   // free(delta_p_over_delta_rho_gdm);
+  // }
+
   return _SUCCESS_;
 
   }
@@ -8205,7 +8213,7 @@ int perturb_derivs(double tau,
         dy[pv->index_pt_delta_gdm] =
           -(1 + w_gdm)*(y[pv->index_pt_theta_gdm] + metric_continuity)
           -3.*a_prime_over_a*(ppt->ceff2_gdm - w_gdm)*(y[pv->index_pt_delta_gdm]) 
-          -9.*a_prime_over_a*a_prime_over_a*(ppt->ceff2_gdm - cg2)*(1 + w_gdm)*y[pv->index_pt_theta_gdm]/k/k;
+          -9.*a_prime_over_a*a_prime_over_a*(ppt->ceff2_gdm - cg2)*(1 + w_gdm)*y[pv->index_pt_theta_gdm]/k2;
 
 
           /** - -----> gdm velocity */

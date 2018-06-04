@@ -323,7 +323,7 @@ int background_functions(
     /* get w_gdm from dedicated function */
     class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, pba->error_message);
     pvecback[pba->index_bg_w_gdm] = w_gdm;
-    pvecback[pba->index_bg_dw_gdm] = dw_over_da_gdm/(1.+w_gdm);
+    pvecback[pba->index_bg_dw_gdm] = dw_over_da_gdm; // /(1.+w_gdm); // ????? TK: why is this divided by 1+w ????
 
     rho_tot += pvecback[pba->index_bg_rho_gdm];
     p_tot += w_gdm * pvecback[pba->index_bg_rho_gdm];
@@ -540,8 +540,8 @@ int background_w_gdm(
     // }
 
     // if ( (w == -1.) || (w == 0.) ){
-      w += 1e-10;
-      dw += 1e-10;
+      w += 1e-10; // ?????? TK: eventually remove these? 
+      dw += 1e-10; // ?????? TK
     // }
     // w=0.00001;
     // dw=0.0;
@@ -1293,6 +1293,7 @@ int background_init(
   int n_ncdm;
   double rho_ncdm_rel,rho_nu_rel;
   double Neff;
+  double w_gdm, dw_over_da_gdm, integral_gdm; // TK added 
   double w_fld, dw_over_da, integral_fld;
   int filenum=0;
   /* vector of all background quantities */
@@ -1400,6 +1401,7 @@ int background_init(
   /* GDM equation of state */
   if (pba->has_gdm == _TRUE_) {
       w_gdm_init(ppr,pba);
+      class_call(background_w_gdm(pba,0,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, pba->error_message); 
     }
 
   /* fluid equation of state */
@@ -1570,6 +1572,14 @@ int background_free(
   //   free(pba->w_free_function_redshift_at_knot);
   //   if(pba->w_free_function_interpolation_is_linear == _FALSE_)free(pba->w_free_function_dd_at_knot);
   // }
+
+  if(pba->has_gdm == _TRUE_){
+    free(pba->w_gdm_at_knot);
+    free(pba->w_gdm_value_at_knot);
+    free(pba->w_gdm_redshift_at_knot);
+    if(pba->w_gdm_interpolation_is_linear == _FALSE_)free(pba->w_gdm_dd_at_knot);
+  }
+  // TK ???????? need to free these ?
   err = background_free_input(pba);
 
   return err;
@@ -2900,9 +2910,9 @@ int background_initial_conditions(
 
     /* rho_gdm at initial time */
     pvecback_integration[pba->index_bi_rho_gdm] = rho_gdm_today * exp(integral_gdm);
-    printf("initial rho_gdm %e\n", pvecback_integration[pba->index_bi_rho_gdm] );
-    printf("rho_gdm today %e\n", rho_gdm_today );
-    printf("exp integral %e\n", exp(integral_gdm) );
+    // printf("initial rho_gdm %e\n", pvecback_integration[pba->index_bi_rho_gdm] );
+    // printf("rho_gdm today %e\n", rho_gdm_today );
+    // printf("exp integral %e\n", exp(integral_gdm) );
 
 
   }  
@@ -3216,7 +3226,7 @@ int background_derivs(
     /** - Compute gdm density \f$ \rho' = -3aH (1+w_{gdm}(a)) \rho \f$ */
     class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, pba->error_message);
     dy[pba->index_bi_rho_gdm] = -3.*y[pba->index_bi_a]*pvecback[pba->index_bg_H]*(1.+pvecback[pba->index_bg_w_gdm])*y[pba->index_bi_rho_gdm];
-    if(w_gdm < 0.33 && w_gdm >= 0.) { rho_M += pvecback[pba->index_bg_rho_gdm]; }
+    if(w_gdm < 0.33 && w_gdm >= 0.) { rho_M += pvecback[pba->index_bg_rho_gdm]; } // TK has bg_rho_gdm been assigned yet ?????? 
   } 
 
 

@@ -815,6 +815,9 @@ int input_read_parameters(
       if (flag2 == _TRUE_)
         pba->Omega0_gdm = param2/pba->h/pba->h;
       printf("pba->Omega0_gdm %e\n", pba->Omega0_gdm);
+      printf("ppt->ceff2_gdm %e\n", ppt->ceff2_gdm);
+      printf("ppt->cvis2_gdm %e\n", ppt->cvis2_gdm);
+
       printf("pba->Omega0_cdm %e\n", pba->Omega0_cdm);
     // }
 
