@@ -100,6 +100,7 @@ int perturb_init(
                  struct thermo * pth,
                  struct perturbs * ppt
                  ) {
+  // printf("perturb_init\n");
 
   /** Summary: */
 
@@ -456,6 +457,8 @@ int perturb_free(
                  struct perturbs * ppt
                  ) {
 
+  // printf("perturb_free\n");
+
   int index_md,index_ic,index_type;
   int filenum;
 
@@ -532,7 +535,7 @@ int perturb_indices_of_perturbs(
                                 struct thermo * pth,
                                 struct perturbs * ppt
                                 ) {
-
+  // printf("perturb_indices_of_perturbs\n");
   /** Summary: */
 
   /** - define local variables */
@@ -892,7 +895,7 @@ int perturb_timesampling_for_sources(
                                      struct thermo * pth,
                                      struct perturbs * ppt
                                      ) {
-
+  // printf("perturb_timesampling_for_sources\n");
   /** Summary: */
 
   /** - define local variables */
@@ -1278,6 +1281,7 @@ int perturb_get_k_list(
   int newk_size, index_newk, add_k_output_value;
 
   /** Summary: */
+  // printf("perturb_get_k_list\n");
 
   class_test(ppr->k_step_transition == 0.,
              ppt->error_message,
@@ -1892,7 +1896,7 @@ int perturb_workspace_init(
                            int index_md,
                            struct perturb_workspace * ppw
                            ) {
-
+  // printf("perturb_workspace_init\n");
   /** Summary: */
 
   /** - define local variables */
@@ -2069,6 +2073,7 @@ int perturb_workspace_free (
                             int index_md,
                             struct perturb_workspace * ppw
                             ) {
+  // printf("perturb_workspace_free\n");
 
   free(ppw->s_l);
   free(ppw->pvecback);
@@ -2130,6 +2135,7 @@ int perturb_solve(
                   int index_k,
                   struct perturb_workspace * ppw
                   ) {
+  // printf("perturb_solve\n");
 
   /** Summary: */
 
@@ -2219,7 +2225,7 @@ int perturb_solve(
 
   /* will be at least the first time in the background table */
   tau_lower = pba->tau_table[0];
-
+  // printf("class_calling background_at_tau\n");
   class_call(background_at_tau(pba,
                                tau_lower,
                                pba->normal_info,
@@ -2457,7 +2463,7 @@ int perturb_solve(
     else{
       generic_evolver = evolver_ndf15;
     }
-
+    // printf("class_calling generic_evolver\n");
     class_call(generic_evolver(perturb_derivs,
                                interval_limit[index_interval],
                                interval_limit[index_interval+1],
@@ -2513,6 +2519,8 @@ int perturb_solve(
 
 int perturb_prepare_output(struct background * pba,
 			   struct perturbs * ppt){
+
+  // printf("perturb_prepare_output\n");
 
   int n_ncdm;
   char tmp[40];
@@ -2673,6 +2681,7 @@ int perturb_find_approximation_number(
                                       int * interval_number,
                                       int * interval_number_of /* interval_number_of[index_ap] (already allocated) */
                                       ){
+  // printf("perturb_find_approximation_number\n");
 
   /** Summary: */
   /* index running over approximations */
@@ -2765,6 +2774,7 @@ int perturb_find_approximation_switches(
                                         double * interval_limit, /* interval_limit[index_interval] (already allocated) */
                                         int ** interval_approx   /* interval_approx[index_interval][index_ap] (already allocated) */
                                         ){
+  // printf("perturb_find_approximation_switches\n");
 
   /** Summary: */
 
@@ -3052,7 +3062,7 @@ int perturb_vector_init(
                         struct perturb_workspace * ppw, /* ppw->pv unallocated if pa_old = NULL, allocated and filled otherwise */
                         int * pa_old
                         ) {
-
+  // printf("perturb_vector_init\n");
   /** Summary: */
 
   /** - define local variables */
@@ -4160,6 +4170,7 @@ int perturb_vector_init(
 int perturb_vector_free(
                         struct perturb_vector * pv
                         ) {
+  // printf("perturb_vector_free\n");
 
   if (pv->l_max_ncdm != NULL) free(pv->l_max_ncdm);
   if (pv->q_size_ncdm != NULL) free(pv->q_size_ncdm);
@@ -4197,6 +4208,7 @@ int perturb_initial_conditions(struct precision * ppr,
                                double tau,
                                struct perturb_workspace * ppw
                                ) {
+  // printf("perturb_initial_conditions\n");
 
   /** Summary: */
 
@@ -5018,6 +5030,7 @@ int perturb_approximations(
                            double tau,
                            struct perturb_workspace * ppw
                            ) {
+  // printf("perturb_approximations\n");
 
   /** Summary: */
 
@@ -5219,6 +5232,7 @@ int perturb_timescale(
                       double * timescale,
                       ErrorMsg error_message
                       ) {
+  // printf("perturb_timescale\n");
 
   /** Summary: */
 
@@ -5395,6 +5409,7 @@ int perturb_einstein(
                      double * y,
                      struct perturb_workspace * ppw
                      ) {
+  // printf("perturb_einstein\n");
 
   /** Summary: */
 
@@ -5588,6 +5603,7 @@ int perturb_total_stress_energy(
                                 double * y,
                                 struct perturb_workspace * ppw
                                 ) {
+  // printf("perturb_total_stress_energy\n");
 
   /** Summary: */
 
@@ -6257,6 +6273,7 @@ int perturb_sources(
                     void * parameters_and_workspace,
                     ErrorMsg error_message
                     ) {
+  // printf("perturb_sources\n");
 
   /** Summary: */
 
@@ -7517,6 +7534,7 @@ int perturb_derivs(double tau,
                    void * parameters_and_workspace,
                    ErrorMsg error_message
                    ) {
+  // printf("perturb_derivs\n");
 
   /** Summary: */
 
@@ -8203,6 +8221,7 @@ int perturb_derivs(double tau,
       w_prime_gdm = dw_over_da_gdm * a_prime_over_a * a;
 
       cg2 = w_gdm - w_prime_gdm / 3. / (1.+w_gdm) / a_prime_over_a; 
+
       // printf("---------------------------------------------c^2_adiabatic for GDM = %e\n", cg2);
       // if (cg2 > 10) cg2 = 10;
       // if (cg2 < -10) cg2 = -10;
@@ -8214,6 +8233,9 @@ int perturb_derivs(double tau,
           -(1 + w_gdm)*(y[pv->index_pt_theta_gdm] + metric_continuity)
           -3.*a_prime_over_a*(ppt->ceff2_gdm - w_gdm)*(y[pv->index_pt_delta_gdm]) 
           -9.*a_prime_over_a*a_prime_over_a*(ppt->ceff2_gdm - cg2)*(1 + w_gdm)*y[pv->index_pt_theta_gdm]/k2;
+
+        // printf("a = %e    k = %e     delta_gdm = %e      w_gdm = %e     cg2 = %e \n", a, k, y[pv->index_pt_delta_gdm], w_gdm, cg2);
+        // printf("d/dt of delta_gdm = %e\n", dy[pv->index_pt_delta_gdm]);
 
 
           /** - -----> gdm velocity */
@@ -8762,6 +8784,7 @@ int perturb_tca_slip_and_shear(double * y,
                                void * parameters_and_workspace,
                                ErrorMsg error_message
                                ) {
+
 
   /** Summary: */
 

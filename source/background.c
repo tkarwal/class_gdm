@@ -612,8 +612,8 @@ int w_gdm_init( struct precision *ppr,
                   pba->error_message);
     }
 
-    // for(int i=0;i<pba->w_gdm_number_of_knots*pba->w_gdm_number_of_columns;i++){
-    //   printf("pba->w_gdm_at_knot %e\n",pba->w_gdm_at_knot[i]);
+    // for(int i=0;i<pba->w_gdm_number_of_knots;i++){
+    //   printf("pba->w_gdm_at_knot %e pba->w_gdm_redshift_at_knot %e\n",pba->w_gdm_at_knot[i*pba->w_gdm_number_of_columns],pba->w_gdm_redshift_at_knot[i]);
     // }
    return _SUCCESS_;
 
