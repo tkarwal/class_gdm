@@ -151,6 +151,7 @@ struct fzerofun_workspace {
   double * target_value;
   int target_size;
   enum computation_stage required_computation_stage;
+  int do_shooting; // TK added flag to skip shooting for Omega_scf here 
 };
 
 

@@ -1775,10 +1775,21 @@ int background_solve(
       printf("    Scalar field details:\n");
       printf("     -> Omega_scf = %g, wished %g\n",
              pvecback[pba->index_bg_rho_scf]/pvecback[pba->index_bg_rho_crit], pba->Omega0_scf);
+
+      class_test( ( (pba->Omega0_scf_max <= pvecback[pba->index_bg_rho_scf]/pvecback[pba->index_bg_rho_crit]) && (pba->do_shooting == _FALSE_) ), // TK check to see if you're not doing shooting and Omega_scf today is too big. 
+               pba->error_message, // TK this is a problem 
+               "Error: Omega_scf today = %e but max allowed is %e. Fix your initial conditions / max Omega_scf allowed and try again\n",pvecback[pba->index_bg_rho_scf]/pvecback[pba->index_bg_rho_crit], pba->Omega0_scf_max);
+               // TK error message says Omega_scf today is too big 
+
       if(pba->has_lambda == _TRUE_)
-	printf("     -> Omega_Lambda = %g, wished %g\n",
+	      printf("     -> Omega_Lambda = %g, wished %g\n",
                pvecback[pba->index_bg_rho_lambda]/pvecback[pba->index_bg_rho_crit], pba->Omega0_lambda);
-      printf("     -> parameters: [lambda, alpha, A, B] = \n");
+      if(pba->scf_parametrization == kar_kam){ 
+        printf("     -> parameters: [beta, epsilon, phi_ini, phi_prime_ini] = \n");
+      }
+      else {
+        printf("     -> parameters: [lambda, alpha, A, B] = \n");
+      }
       printf("                    [");
       for (i=0; i<pba->scf_parameters_size-1; i++){
         printf("%.3f, ",pba->scf_parameters[i]);
@@ -1935,6 +1946,7 @@ int background_initial_conditions(
    * - is rho_ur all there is early on?
    */
   if(pba->has_scf == _TRUE_){
+    // TK ?????????? have not yet coded attractor solutions for the kar_kam field 
     scf_lambda = pba->scf_parameters[0];
     if(pba->attractor_ic_scf == _TRUE_){
       pvecback_integration[pba->index_bi_phi_scf] = -1/scf_lambda*

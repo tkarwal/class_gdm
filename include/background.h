@@ -93,6 +93,15 @@ struct background
                                                     Can be based on the Albrecht & Skordis paper 9908085
                                                     Or based on our (Karwal & Kamionkowski) work */
 
+  // TK Check whether we want to shoot for phi_ini or not
+  // If do_shooting is false, CLASS will take input phi_ini, evolve it forward and use that to define rho_scf 
+  // It will then tell you what the actual Omega_scf is and what was wished 
+  // Issue with this is that rho_scf can become too large and CLASS will still run through the same cosmology
+  // So we could end up with a closed universe <-- CHECK THIS WITH MATH
+  // Adding a maximum Omega0_scf to allow, s.t. if Omega0_scf calculated becomes too big, give an error message
+  int do_shooting;
+  double Omega0_scf_max; // TK Maximum Omega0_scf to allow in case we're not shooting 
+
   double Omega0_k; /**< \f$ \Omega_{0_k} \f$: curvature contribution */
 
   int N_ncdm;                            /**< Number of distinguishable ncdm species */

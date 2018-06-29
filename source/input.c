@@ -239,6 +239,21 @@ int input_init(
   class_read_int("input_verbose",input_verbose);
   if (input_verbose >0) printf("Reading input parameters\n");
 
+  // TK Do we want to shoot for Omega_scf? 
+  // do_shooting is a parameter specifically for whether or not you want to shoot for Omega_scf
+  class_call(parser_read_string(pfc,"do_shooting",&string1,&flag1,errmsg),
+             errmsg,
+             errmsg);
+
+    if ((flag1 == _TRUE_) && ((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL))) {
+      fzw.do_shooting = _TRUE_;
+    }
+
+    else { // TK current default for shooting is false 
+      fzw.do_shooting = _FALSE_;
+    }
+
+
   /** - Do we need to fix unknown parameters? */
   unknown_parameters_size = 0;
   fzw.required_computation_stage = 0;
@@ -251,23 +266,30 @@ int input_init(
                errmsg,
                errmsg);
     if (flag1 == _TRUE_){
-      /** - --> input_auxillary_target_conditions() takes care of the case where for
-          instance Omega_dcdmdr is set to 0.0.
-       */
-      class_call(input_auxillary_target_conditions(pfc,
-                                                   index_target,
-                                                   param1,
-                                                   &aux_flag,
-                                                   errmsg),
-                 errmsg, errmsg);
-      if (aux_flag == _TRUE_){
-        //printf("Found target: %s\n",target_namestrings[index_target]);
-        target_indices[unknown_parameters_size] = index_target;
-        fzw.required_computation_stage = MAX(fzw.required_computation_stage,target_cs[index_target]);
-        unknown_parameters_size++;
+      if ( (strstr( target_namestrings[index_target] ,"Omega_scf") == NULL) || (fzw.do_shooting == _TRUE_)){
+        // TK Now we control whether or not to shoot for Omega_scf
+        // For all parameters that aren't Omega_scf, proceed normally, first condition is true 
+        // If Omega_scf, check second condition. If we want it to shoot, it'll add Omega_scf to the target_indices 
+
+        /** - --> input_auxillary_target_conditions() takes care of the case where for
+            instance Omega_dcdmdr is set to 0.0.
+         */
+        class_call(input_auxillary_target_conditions(pfc,
+                                                     index_target,
+                                                     param1,
+                                                     &aux_flag,
+                                                     errmsg),
+                   errmsg, errmsg);
+        if (aux_flag == _TRUE_){
+          //printf("Found target: %s\n",target_namestrings[index_target]);
+          target_indices[unknown_parameters_size] = index_target;
+          fzw.required_computation_stage = MAX(fzw.required_computation_stage,target_cs[index_target]);
+          unknown_parameters_size++;
+        }
       }
     }
   }
+
 
   /** - case with unknown parameters */
   if (unknown_parameters_size > 0) {
@@ -319,6 +341,10 @@ int input_init(
     }
 
     if (unknown_parameters_size == 1){
+      // TK add here, if the unknown parameter is scalar field related, then call a different input_find_root 
+      // Otherwise, just do the usual find_root stuff. 
+      // TK ???????????
+      
       /* We can do 1 dimensional root finding */
       /* If shooting fails, postpone error to background module to play nice with MontePython. */
       class_call_try(input_find_root(&xzero,
@@ -1055,15 +1081,11 @@ int input_read_parameters(
 
         pba->scf_parametrization = kar_kam;
       }
+    }
 
-      else { 
+    else { 
         pba->scf_parametrization = abl_sko;
       }
-    }
-
-    else {
-      pba->scf_parametrization = abl_sko;
-    }
 
 
     if (pba->scf_parametrization == kar_kam ) {
@@ -1104,6 +1126,7 @@ int input_read_parameters(
                    "Since you are not using attractor initial conditions, you must specify phi and its derivative phi' as the last two entries in scf_parameters. See explanatory.ini for more details.");
             pba->phi_ini_scf = pba->scf_parameters[pba->scf_parameters_size-2];
             pba->phi_prime_ini_scf = pba->scf_parameters[pba->scf_parameters_size-1];
+            printf("phi_ini = %e \t\t phi_prime_ini = %e \n", pba->phi_ini_scf, pba->phi_prime_ini_scf);
           }
         }
 
@@ -1112,6 +1135,38 @@ int input_read_parameters(
                    "Since you are not using attractor initial conditions, you must specify phi and its derivative phi' as the last two entries in scf_parameters. See explanatory.ini for more details.");
         pba->phi_ini_scf = pba->scf_parameters[pba->scf_parameters_size-2]; 
         pba->phi_prime_ini_scf = pba->scf_parameters[pba->scf_parameters_size-1];
+
+        // TK Do we want to shoot for Omega_scf? 
+        // do_shooting is a parameter specifically for whether or not you want to shoot for Omega_scf
+        class_call(parser_read_string(pfc,"do_shooting",&string1,&flag1,errmsg),
+                   errmsg,
+                   errmsg);
+
+        if ((flag1 == _TRUE_) && ((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL))) {
+          pba->do_shooting = _TRUE_;
+        }
+
+        else { // TK current default for shooting is false 
+          pba->do_shooting = _FALSE_;
+          // If shooting is false, read the following double
+          class_call(parser_read_double(pfc,"Omega_scf_max",&param1,&flag1,errmsg),
+                     errmsg,
+                     errmsg);
+
+          if (flag1 != _TRUE_){
+            printf("If you do not want to shoot for the value of phi_ini based on Omega_scf,\nideally you should define Omega_scf_max so a reasonable cosmology is produced.\nDefault assumes Omega_scf_max = 1e-7\n");
+          }
+
+          else{
+            pba->Omega0_scf_max = param1;
+            printf("Not shooting for phi_ini of scalar field.\nMaximum allowed fractional density in scalar field today = %e\n", pba->Omega0_scf_max);
+          }
+
+
+        }
+
+
+
 
     } // TK End read input for karwal-kamionkowski potential 
 
@@ -2983,6 +3038,8 @@ int input_default_params(
   pba->phi_ini_scf = 1;
   pba->phi_prime_ini_scf = 1;
   pba->scf_parametrization = abl_sko; // TK added this as the default parametrisation for the scalar field potential 
+  pba->do_shooting = _FALSE_; // TK set default to not shoot 
+  pba->Omega0_scf_max = 1e-7; // TK set default maximum Omega_scf to allow to be order smaller than the last precision digit of Omega_lambda 
 
   pba->Omega0_k = 0.;
   pba->K = 0.;
@@ -3792,6 +3849,7 @@ int input_try_unknown_parameters(double * unknown_parameter,
       output[i] = (rho_dcdm_today+rho_dr_today)/(ba.H0*ba.H0)-pfzw->target_value[i]/ba.h/ba.h;
       break;
     case Omega_scf:
+      printf("Shooting for Omega_scf. do_shooting = %d\n", pfzw->do_shooting);
       /** - In case scalar field is used to fill, pba->Omega0_scf is not equal to pfzw->target_value[i].*/
       output[i] = ba.background_table[(ba.bt_size-1)*ba.bg_size+ba.index_bg_rho_scf]/(ba.H0*ba.H0)
         -ba.Omega0_scf;
@@ -3933,6 +3991,7 @@ int input_get_guess(double *xguess,
         //printf("x = Omega_ini_guess = %g, dxdy = %g\n",*xguess,*dxdy);
       break;
     case Omega_scf:
+      printf("Shooting for Omega_scf. do_shooting = %d\n", pfzw->do_shooting);
 
  /** - This guess is arbitrary, something nice using WKB should be implemented.
   *
