@@ -1126,7 +1126,9 @@ int input_read_parameters(
                    "Since you are not using attractor initial conditions, you must specify phi and its derivative phi' as the last two entries in scf_parameters. See explanatory.ini for more details.");
             pba->phi_ini_scf = pba->scf_parameters[pba->scf_parameters_size-2];
             pba->phi_prime_ini_scf = pba->scf_parameters[pba->scf_parameters_size-1];
-            printf("phi_ini = %e \t\t phi_prime_ini = %e \n", pba->phi_ini_scf, pba->phi_prime_ini_scf);
+            if (input_verbose>0) { 
+              printf("phi_ini = %e \t\t phi_prime_ini = %e \n", pba->phi_ini_scf, pba->phi_prime_ini_scf);
+            }
           }
         }
 
