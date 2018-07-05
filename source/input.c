@@ -1153,13 +1153,13 @@ int input_read_parameters(
                      errmsg,
                      errmsg);
 
-          if ((flag1 != _TRUE_)&&(pba->input_verbose>1)){
+          if ((flag1 != _TRUE_)&&(input_verbose>1)){
             printf("If you do not want to shoot for the value of phi_ini based on Omega_scf,\nideally you should define Omega_scf_max so a reasonable cosmology is produced.\nDefault assumes Omega_scf_max = 1e-7\n");
           }
 
           else{
             pba->Omega0_scf_max = param1;
-            if (pba->input_verbose>1){
+            if (input_verbose>1){
               printf("Not shooting for phi_ini of scalar field.\nMaximum allowed fractional density in scalar field today = %e\n", pba->Omega0_scf_max);
             }
           }
