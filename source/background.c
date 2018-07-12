@@ -1785,7 +1785,7 @@ int background_solve(
 	      printf("     -> Omega_Lambda = %g, wished %g\n",
                pvecback[pba->index_bg_rho_lambda]/pvecback[pba->index_bg_rho_crit], pba->Omega0_lambda);
       if(pba->scf_parametrization == kar_kam){ 
-        printf("     -> parameters: [beta, epsilon, phi_ini, phi_prime_ini] = \n");
+        printf("     -> parameters: [log10_beta, epsilon, phi_ini, phi_prime_ini] = \n");
       }
       else {
         printf("     -> parameters: [lambda, alpha, A, B] = \n");
@@ -2343,7 +2343,7 @@ double V_scf(
 
   // TK added the karwal kamionkowski potential here 
   if (pba->scf_parametrization == kar_kam ) {
-    double scf_beta  = pba->scf_parameters[0];
+    double scf_beta  = pow(10,pba->scf_parameters[0]); 
     double scf_epsilon  = pba->scf_parameters[1];
     // beta * Omega_m * a_eq^-3 * phi * 1/2*( tanh( beta*phi/epsilon ) + 1 )
     return scf_beta
@@ -2364,7 +2364,7 @@ double dV_scf(
 
   // TK added the karwal kamionkowski potential here 
   if (pba->scf_parametrization == kar_kam ) {
-    double scf_beta  = pba->scf_parameters[0];
+    double scf_beta  = pow(10,pba->scf_parameters[0]); 
     double scf_epsilon  = pba->scf_parameters[1];
     // beta * Omega_m * a_eq^-3 * 1/2*( tanh( beta*phi/epsilon ) + 1 )
     return scf_beta
@@ -2385,7 +2385,7 @@ double ddV_scf(
 
   // TK added the karwal kamionkowski potential here 
   if (pba->scf_parametrization == kar_kam ) {
-    double scf_beta  = pba->scf_parameters[0];
+    double scf_beta  = pow(10,pba->scf_parameters[0]); 
     double scf_epsilon  = pba->scf_parameters[1];
     // 0. 
     return 0.; 
