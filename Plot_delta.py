@@ -4,8 +4,8 @@ from scipy.interpolate import interp1d
 from matplotlib.backends.backend_pdf import PdfPages
 
 
-file_name_1 = 'output/low_ISW_background.dat'
-file_name_2 = 'output/explanatory05_background.dat'
+file_name_2 = 'output/low_ISW_second_background.dat'
+file_name_1 = 'output/LCDM_background.dat'
 
 
 # gdm = np.loadtxt('output/Added_GDM09_background.dat')
@@ -39,6 +39,8 @@ plt.legend()
 # plt.tight_layout()
 # plt.title('Ratio of GDM to CDM in the TT poswer spectrum')
 
+
+
 # plot_name = 'GDM_CDM_ratio_TT_unlensed.pdf'
 
 # with PdfPages(plot_name) as pdf:
@@ -50,6 +52,12 @@ plt.show()
 
 plt.plot(x_1, y_2(x_1)/y_1(x_1) - 1, label = 'file_2 / file_1 - 1')
 
+
+plt.xlabel(r'$z$', fontsize = 18)
+plt.ylabel(r'$\left(\frac{H^{GDM} - H^{CDM}}{H^{CDM}}\right)$', fontsize = 18)
+plt.tight_layout()
+
+
 plt.xscale('log')
 plt.legend()
 
@@ -58,10 +66,10 @@ plt.legend()
 # plt.tight_layout()
 # plt.title('Ratio of GDM to CDM in the TT poswer spectrum')
 
-# plot_name = 'GDM_CDM_ratio_TT_unlensed.pdf'
+plot_name = 'H_second.pdf'
 
-# with PdfPages(plot_name) as pdf:
-# 	pdf.savefig(bbox_inches='tight')
+with PdfPages(plot_name) as pdf:
+	pdf.savefig(bbox_inches='tight')
 
 
 plt.show()
