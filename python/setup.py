@@ -39,7 +39,7 @@ setup(
                            libraries=liblist,
                            library_dirs=["../", GCCPATH],
                            # extra_link_args=['-lgomp','-lgsl','-lgslcblas'],
-                           extra_link_args=['-lgomp'],
+                           extra_link_args=['-lgomp', '-Wl,-rpath,/usr/local/opt/gcc/lib/gcc/7/'],
                            )],
     #data_files=[('bbn', ['../bbn/sBBN.dat'])]
 )

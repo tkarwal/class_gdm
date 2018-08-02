@@ -8235,7 +8235,7 @@ int perturb_derivs(double tau,
           -9.*a_prime_over_a*a_prime_over_a*(ppt->ceff2_gdm - cg2)*(1 + w_gdm)*y[pv->index_pt_theta_gdm]/k2;
 
         // printf("a = %e    k = %e     delta_gdm = %e      w_gdm = %e     cg2 = %e \n", a, k, y[pv->index_pt_delta_gdm], w_gdm, cg2);
-        // printf("d/dt of delta_gdm = %e\n", dy[pv->index_pt_delta_gdm]);
+        printf("d/dt of delta_gdm = %e\n", dy[pv->index_pt_delta_gdm]);
 
 
           /** - -----> gdm velocity */
@@ -8266,7 +8266,7 @@ int perturb_derivs(double tau,
       //
       // }
 
-        // printf("d/dt of theta_gdm = %e\n", dy[pv->index_pt_theta_gdm]);
+        printf("d/dt of theta_gdm = %e\n", dy[pv->index_pt_theta_gdm]);
 
 
 
@@ -8289,8 +8289,11 @@ int perturb_derivs(double tau,
         // else{ //Hu equation for the ''standard'' GDM. Next: generalise above equation to avoid cutting the hierarchy.
           dy[pv->index_pt_shear_gdm] =
                 (w_prime_gdm/w_gdm/(1+w_gdm) -3.*a_prime_over_a)*y[pv->index_pt_shear_gdm]
-                +(8.*ppt->cvis2_gdm /3. /(1+w_gdm))*(y[pv->index_pt_theta_gdm]+metric_shear);
+                +(8.*ppt->cvis2_gdm /3. /(1+w_gdm))*(y[pv->index_pt_theta_gdm]+metric_shear); 
         // }
+
+        printf("d/dt of shear_gdm = %e\n", dy[pv->index_pt_shear_gdm]);
+
 
         //
         // // if (dy[pv->index_pt_shear_gdm] != 0.0)
