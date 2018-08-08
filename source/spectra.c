@@ -3096,7 +3096,9 @@ int spectra_matter_transfers(
         if (pba->has_gdm == _TRUE_) {
 
           rho_i = pvecback_sp_long[pba->index_bg_rho_gdm];
-          class_call(background_w_gdm(pba,0.,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, psp->error_message);
+          // class_call(background_w_gdm(pba,0.,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, psp->error_message);
+          w_gdm = pvecback_sp_long[pba->index_bg_w_gdm];
+          dw_over_da_gdm = pvecback_sp_long[pba->index_bg_dw_gdm];
 
           if (ppt->has_source_delta_gdm == _TRUE_) {
 

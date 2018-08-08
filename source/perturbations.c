@@ -4272,7 +4272,9 @@ int perturb_initial_conditions(struct precision * ppr,
     /* TK added GDM here
     Adding GDM to rho_m unlike ur species */
     if (pba->has_gdm == _TRUE_) {
-      class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+      // class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+      w_gdm = ppw->pvecback[pba->index_bg_w_gdm];
+      dw_over_da_gdm = ppw->pvecback[pba->index_bg_dw_gdm];
       // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
       //   printf("initial conditions\na = %e \t w_gdm = %e \n",a,w_gdm);
       // }
@@ -4481,7 +4483,12 @@ int perturb_initial_conditions(struct precision * ppr,
       The gdm initial conditions are based on arXiv:1605.00649 */
       // GDM initial conditions defined here
       if (pba->has_gdm == _TRUE_) {
-        class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+        // class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+        // TK need to remove all allusions to this background function 
+        // because the data / knots it refers to have been freen in background.c
+        w_gdm = ppw->pvecback[pba->index_bg_w_gdm];
+        dw_over_da_gdm = ppw->pvecback[pba->index_bg_dw_gdm];
+
         // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
         //  printf("initial conditions 2\na = %e \t w_gdm = %e \n",a,w_gdm);
         //  }
@@ -5778,7 +5785,9 @@ int perturb_total_stress_energy(
 
     /* TK added GDM contribution here */
     if (pba->has_gdm == _TRUE_) {
-      class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+      // class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+      w_gdm = ppw->pvecback[pba->index_bg_w_gdm];
+      dw_over_da_gdm = ppw->pvecback[pba->index_bg_dw_gdm];
       // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
       //   printf("total stress energy\na = %e \t w_gdm = %e \n",a,w_gdm);
       // }
@@ -6047,7 +6056,9 @@ int perturb_total_stress_energy(
 
       /* TK included GDM too */
       if (pba->has_gdm == _TRUE_) {
-        class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+        // class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+        w_gdm = ppw->pvecback[pba->index_bg_w_gdm];
+        dw_over_da_gdm = ppw->pvecback[pba->index_bg_dw_gdm];
         // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
         //   printf("total stress energy 2\na = %e \t w_gdm = %e \n",a,w_gdm);
         // }
@@ -6103,7 +6114,10 @@ int perturb_total_stress_energy(
 
       /* TK also added GDM to theta_m */
       if (pba->has_gdm == _TRUE_) {
-        class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+        // class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+        w_gdm = ppw->pvecback[pba->index_bg_w_gdm];
+        dw_over_da_gdm = ppw->pvecback[pba->index_bg_dw_gdm];
+
         // if (abs(w_gdm-1.000010e-05) > 1e-10){
         //   printf("total stress energy 3\na = %e \t w_gdm = %e \n",a,w_gdm);
         // }
@@ -7162,7 +7176,11 @@ int perturb_print_variables(double tau,
       // TK added GDM here. I figure this looks like 3(1+w)*H*a*alpha
       if (pba->has_gdm == _TRUE_) {
 
-        class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+        // class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+        w_gdm = pvecback[pba->index_bg_w_gdm];
+        dw_over_da_gdm = pvecback[pba->index_bg_dw_gdm];
+
+
         w_prime_gdm = dw_over_da_gdm * a_prime_over_a * a;
         cg2 = w_gdm - w_prime_gdm / 3. / (1.+w_gdm) / a_prime_over_a;
         // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){ 
@@ -8214,7 +8232,9 @@ int perturb_derivs(double tau,
 
     if (pba->has_gdm == _TRUE_) {
 
-      class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+      // class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
+      w_gdm = pvecback[pba->index_bg_w_gdm];
+      dw_over_da_gdm = pvecback[pba->index_bg_dw_gdm];
       // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
       //   printf("derivs\na = %e \t w_gdm = %e \n",a,w_gdm);
       // }
@@ -8235,7 +8255,15 @@ int perturb_derivs(double tau,
           -9.*a_prime_over_a*a_prime_over_a*(ppt->ceff2_gdm - cg2)*(1 + w_gdm)*y[pv->index_pt_theta_gdm]/k2;
 
         // printf("a = %e    k = %e     delta_gdm = %e      w_gdm = %e     cg2 = %e \n", a, k, y[pv->index_pt_delta_gdm], w_gdm, cg2);
-        printf("d/dt of delta_gdm = %e\n", dy[pv->index_pt_delta_gdm]);
+        if(isnan(dy[pv->index_pt_delta_gdm])){
+          // printf("d/dt of delta_gdm = %e\n", dy[pv->index_pt_delta_gdm]);
+          printf("w_gdm = %e\n", ((w_gdm)));
+          // printf("theta_gdm = %e\n", y[pv->index_pt_theta_gdm]);
+          // printf("delta_gdm = %e\n", y[pv->index_pt_delta_gdm]);
+          // printf("c_g^2 = %e\n", cg2);
+          // printf("metric_continuity = %e\n\n\n", metric_continuity);
+        }
+
 
 
           /** - -----> gdm velocity */
@@ -8266,7 +8294,7 @@ int perturb_derivs(double tau,
       //
       // }
 
-        printf("d/dt of theta_gdm = %e\n", dy[pv->index_pt_theta_gdm]);
+        // printf("d/dt of theta_gdm = %e\n", dy[pv->index_pt_theta_gdm]);
 
 
 
@@ -8292,7 +8320,7 @@ int perturb_derivs(double tau,
                 +(8.*ppt->cvis2_gdm /3. /(1+w_gdm))*(y[pv->index_pt_theta_gdm]+metric_shear); 
         // }
 
-        printf("d/dt of shear_gdm = %e\n", dy[pv->index_pt_shear_gdm]);
+        // printf("d/dt of shear_gdm = %e\n", dy[pv->index_pt_shear_gdm]);
 
 
         //
