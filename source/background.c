@@ -539,10 +539,10 @@ int background_w_gdm(
     //   printf("%e\n", (w-1e-5));
     // }
 
-    // if ( (w == -1.) || (w == 0.) ){
+    if ( (w == -1.) || (w == 0.) ){
       w += 1e-10; // ?????? TK: eventually remove these? 
-      dw += 1e-10; // ?????? TK
-    // }
+      // dw += 1e-10; // ?????? TK
+    }
     // w=0.00001;
     // dw=0.0;
     *w_gdm = w; // why is this off by 1e-10? Is this to ensure it never exactly zero / -1 ? 
@@ -1579,7 +1579,10 @@ int background_free(
     free(pba->w_gdm_redshift_at_knot);
     if(pba->w_gdm_interpolation_is_linear == _FALSE_)free(pba->w_gdm_dd_at_knot);
   }
-  // TK ???????? need to free these ?
+  // TK need to free these.
+  // Freed them here, but perturbation was still relying on class_call(background_w_gdm) which in turn used these arrays
+  // Now perturbations points to the saved pba->index_bg_w_gdm and so on vectors 
+  
   err = background_free_input(pba);
 
   return err;

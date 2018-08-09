@@ -8235,6 +8235,15 @@ int perturb_derivs(double tau,
       // class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, ppt->error_message);
       w_gdm = pvecback[pba->index_bg_w_gdm];
       dw_over_da_gdm = pvecback[pba->index_bg_dw_gdm];
+
+      // // TK trouble shooting here 
+      // double z;
+      // z = 1/a-1;
+      // if (z < 50){
+      //   // printf("z = %e \t w_gdm = %e \t dw_gdm/da = %e\n", 1/a-1, w_gdm, dw_over_da_gdm);
+      //   printf("%e \t %e \t %e\n", 1/a-1, w_gdm, dw_over_da_gdm);
+      // }
+
       // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
       //   printf("derivs\na = %e \t w_gdm = %e \n",a,w_gdm);
       // }
