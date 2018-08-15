@@ -4,8 +4,8 @@ from scipy.interpolate import interp1d
 from matplotlib.backends.backend_pdf import PdfPages
 
 
-file_name_1 = 'output/low_ISW_background.dat'
-file_name_2 = 'output/explanatory05_background.dat'
+file_name_1 = 'output/L_background.dat'
+file_name_2 = 'output/Planck_bestfit01_background.dat'
 
 
 # gdm = np.loadtxt('output/Added_GDM09_background.dat')

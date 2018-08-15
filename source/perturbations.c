@@ -8239,9 +8239,11 @@ int perturb_derivs(double tau,
       // // TK trouble shooting here 
       // double z;
       // z = 1/a-1;
-      // if (z < 50){
-      //   // printf("z = %e \t w_gdm = %e \t dw_gdm/da = %e\n", 1/a-1, w_gdm, dw_over_da_gdm);
-      //   printf("%e \t %e \t %e\n", 1/a-1, w_gdm, dw_over_da_gdm);
+      // double Hubb = pvecback[pba->index_bg_H];
+      // if (z < 100){
+      //   // printf("z = %e \t w_gdm = %e \t dw_gdm/da = %e\n", 1/a-1, w_gdm, dw_over_da_gdm); // Print z, w_gdm, dw_gdm/da saying which is which 
+      //   // printf("%e \t %e \t %e\n", 1/a-1, w_gdm, dw_over_da_gdm); // Print z, w_gdm, dw_gdm/da just with tabs so you can save the text and plot it 
+      //   printf("%e \t %e \t %e\n", 1/a-1, w_gdm, Hubb); // Print z, w_gdm, H(z) just as text so it can easily be plot 
       // }
 
       // if ( abs(w_gdm-1.000010e-05) > 1e-10 ){
