@@ -322,8 +322,14 @@ int background_functions(
     pvecback[pba->index_bg_rho_gdm] = pvecback_B[pba->index_bi_rho_gdm];
     /* get w_gdm from dedicated function */
     class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, pba->error_message);
-    pvecback[pba->index_bg_w_gdm] = w_gdm;
-    pvecback[pba->index_bg_dw_gdm] = dw_over_da_gdm; // /(1.+w_gdm); // ????? TK: why is this divided by 1+w ????
+    // pvecback[pba->index_bg_w_gdm] = w_gdm;
+    // pvecback[pba->index_bg_dw_gdm] = dw_over_da_gdm; // /(1.+w_gdm); // ????? TK: why is this divided by 1+w ????
+
+    // // TK trying to reproduce tarun's results 
+    // // uncomment the above lines when done 
+    pvecback[pba->index_bg_w_gdm] = 0.;
+    pvecback[pba->index_bg_dw_gdm] = 0.; // /(1.+w_gdm); // ????? TK: why is this divided by 1+w ????
+
 
     rho_tot += pvecback[pba->index_bg_rho_gdm];
     p_tot += w_gdm * pvecback[pba->index_bg_rho_gdm];
@@ -3228,7 +3234,7 @@ int background_derivs(
   if (pba->has_gdm == _TRUE_) {
     /** - Compute gdm density \f$ \rho' = -3aH (1+w_{gdm}(a)) \rho \f$ */
     class_call(background_w_gdm(pba,a,&w_gdm,&dw_over_da_gdm,&integral_gdm), pba->error_message, pba->error_message);
-    dy[pba->index_bi_rho_gdm] = -3.*y[pba->index_bi_a]*pvecback[pba->index_bg_H]*(1.+pvecback[pba->index_bg_w_gdm])*y[pba->index_bi_rho_gdm];
+    dy[pba->index_bi_rho_gdm] = -3.*y[pba->index_bi_a]*pvecback[pba->index_bg_H]*(1.+ w_gdm)*y[pba->index_bi_rho_gdm];
     if(w_gdm < 0.33 && w_gdm >= 0.) { rho_M += pvecback[pba->index_bg_rho_gdm]; } // TK has bg_rho_gdm been assigned yet ?????? 
   } 
 

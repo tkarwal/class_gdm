@@ -8325,11 +8325,15 @@ int perturb_derivs(double tau,
         //      -(1.-3*ppt->cvis2_gdm)*(8./15.*(y[pv->index_pt_theta_gdm]+metric_shear)));
         // }
 
-        // else{ //Hu equation for the ''standard'' GDM. Next: generalise above equation to avoid cutting the hierarchy.
-          dy[pv->index_pt_shear_gdm] =
-                (w_prime_gdm/w_gdm/(1+w_gdm) -3.*a_prime_over_a)*y[pv->index_pt_shear_gdm]
-                +(8.*ppt->cvis2_gdm /3. /(1+w_gdm))*(y[pv->index_pt_theta_gdm]+metric_shear); 
-        // }
+        // // else{ //Hu equation for the ''standard'' GDM. Next: generalise above equation to avoid cutting the hierarchy.
+        //   dy[pv->index_pt_shear_gdm] =
+        //         (w_prime_gdm/w_gdm/(1+w_gdm) -3.*a_prime_over_a)*y[pv->index_pt_shear_gdm]
+        //         +(8.*ppt->cvis2_gdm /3. /(1+w_gdm))*(y[pv->index_pt_theta_gdm]+metric_shear); 
+        // // }
+
+        // TK to reproduce tarun's results, removing shear from gdm to imitate cdm perturbations for now 
+        // un comment shear eq directly above to restore 
+          dy[pv->index_pt_shear_gdm] = 0.;
 
         // printf("d/dt of shear_gdm = %e\n", dy[pv->index_pt_shear_gdm]);
 
