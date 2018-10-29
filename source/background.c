@@ -2345,9 +2345,10 @@ double V_scf(
   if (pba->scf_parametrization == kar_kam ) {
     double scf_beta  = pow(10,pba->scf_parameters[0]); 
     double scf_epsilon  = pba->scf_parameters[1];
-    // beta * Omega_m * a_eq^-3 * phi * 1/2*( tanh( beta*phi/epsilon ) + 1 )
-    return scf_beta
-    *(pba->Omega0_b+pba->Omega0_cdm)*pow( pba->Omega0_g/(pba->Omega0_b+pba->Omega0_cdm), -3)
+    double z_star = 1e3;
+    // beta * Omega_* * phi * 1/2*( tanh( beta*phi/epsilon ) + 1 )
+    return 3*scf_beta
+    *( (pba->Omega0_b+pba->Omega0_cdm)*pow(z_star,3)*pow(pba->H0,2) + (pba->Omega0_g+pba->Omega0_ur)*pow(z_star,4)*pow(pba->H0,2) ) 
     *phi
     *0.5*(tanh(scf_beta*phi/scf_epsilon) + 1.); 
 
@@ -2366,9 +2367,10 @@ double dV_scf(
   if (pba->scf_parametrization == kar_kam ) {
     double scf_beta  = pow(10,pba->scf_parameters[0]); 
     double scf_epsilon  = pba->scf_parameters[1];
+    double z_star = 1e3;
     // beta * Omega_m * a_eq^-3 * 1/2*( tanh( beta*phi/epsilon ) + 1 )
-    return scf_beta
-    *(pba->Omega0_b+pba->Omega0_cdm)*pow( pba->Omega0_g/(pba->Omega0_b+pba->Omega0_cdm), -3)
+    return 3*scf_beta
+    *( (pba->Omega0_b+pba->Omega0_cdm)*pow(z_star,3)*pow(pba->H0,2) + (pba->Omega0_g+pba->Omega0_ur)*pow(z_star,4)*pow(pba->H0,2) ) 
     *0.5*(tanh(scf_beta*phi/scf_epsilon) + 1.); 
 
   }
@@ -2387,6 +2389,7 @@ double ddV_scf(
   if (pba->scf_parametrization == kar_kam ) {
     double scf_beta  = pow(10,pba->scf_parameters[0]); 
     double scf_epsilon  = pba->scf_parameters[1];
+    double z_star = 1e3;
     // 0. 
     return 0.; 
 
