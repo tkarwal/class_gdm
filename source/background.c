@@ -1789,8 +1789,8 @@ int background_solve(
       printf("     -> Omega_scf = %g, wished %g\n",
              pvecback[pba->index_bg_rho_scf]/pvecback[pba->index_bg_rho_crit], pba->Omega0_scf);
       if(pba->scf_parametrization == z_c_f_ede){ 
-        printf("     -> z_c = %e \t f_ede = %e\n", pba->z_c, pba->f_ede);
-        printf("     -> phi_c = %e \n", pba->phi_scf_c);
+        printf("     -> Exact z_c = %e \t f_ede = %e\n", pba->z_c, pba->f_ede);
+        printf("     -> phi(z_c) = %e \n", pba->phi_scf_c);
       }
 
       class_test( ( (pba->Omega0_scf_max <= pvecback[pba->index_bg_rho_scf]/pvecback[pba->index_bg_rho_crit]) && (pba->do_shooting == _FALSE_) ), // TK check to see if you're not doing shooting and Omega_scf today is too big. 
@@ -1801,7 +1801,7 @@ int background_solve(
       if(pba->has_lambda == _TRUE_)
 	      printf("     -> Omega_Lambda = %g, wished %g\n",
                pvecback[pba->index_bg_rho_lambda]/pvecback[pba->index_bg_rho_crit], pba->Omega0_lambda);
-      if(pba->scf_parametrization == kar_kam){ 
+      if( (pba->scf_parametrization == kar_kam) || (pba->scf_parametrization == z_c_f_ede) ) { 
         printf("     -> parameters: [log10_beta, epsilon, phi_ini, phi_prime_ini] = \n");
       }
       else {

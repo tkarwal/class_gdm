@@ -1213,7 +1213,7 @@ int input_read_parameters(
                            * (1 + f_ede_approx); // add the energy density of the scalar field 
         // rho_c_scf is the energy density in the universe when the field begins to dilute 
 
-        printf("rho_star = %e \trho_c_scf = %e \trho_star/rho_c = %e \n", rho_star, rho_c_scf, rho_star/rho_c_scf);
+        // printf("rho_star = %e \trho_c_scf = %e \trho_star/rho_c = %e \n", rho_star, rho_c_scf, rho_star/rho_c_scf);
 
         scf_beta_calculated = pow((2./3. * (1-pba->F_scf) / (3.*pba->F_scf*pba->H_t_scf + 1.) ),0.5) 
                             * (1.+3.*pba->H_t_scf)/pba->H_t_scf 
@@ -1232,7 +1232,7 @@ int input_read_parameters(
         pba->scf_parameters[0] = log10(scf_beta_calculated);
         pba->scf_parameters[2] = scf_phi_ini_calculated;
 
-        printf("Stored in scf_params list : %e %e \n", pba->scf_parameters[0], pba->scf_parameters[2]);
+        // printf("Stored in scf_params list : %e %e \n", pba->scf_parameters[0], pba->scf_parameters[2]);
 
         // TK ?????????????????????????????
 
