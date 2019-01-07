@@ -1078,8 +1078,10 @@ int input_read_parameters(
     // TK added the following to switch b/w scalar field potentials 
     if (flag1 == _TRUE_){ // If scalar field parametrisation is specified and it's the karwal-kamionkowski field 
       if( strstr(string1,"kar_kam") != NULL ){
-
         pba->scf_parametrization = kar_kam;
+      }
+      else if( strstr(string1,"z_c_f_ede") != NULL ){
+        pba->scf_parametrization = z_c_f_ede;
       }
     }
 
@@ -1173,6 +1175,139 @@ int input_read_parameters(
 
 
     } // TK End read input for karwal-kamionkowski potential 
+
+
+    // For specifying z_c and fraction_ede instead of the params of the scf, beta and phi_ini
+    if (pba->scf_parametrization == z_c_f_ede ) {
+
+        /** - Read parameters describing scalar field potential */
+        class_call(parser_read_list_of_doubles(pfc,
+                                               "scf_parameters",
+                                               &(pba->scf_parameters_size),
+                                               &(pba->scf_parameters),
+                                               &flag1,
+                                               errmsg),
+                   errmsg,errmsg);
+        // TK just read this list and store it. We'll call the parameters directly later
+
+        // TK ??????? Add to this area a print out of what's being read in eg. : 
+        // printf("Tuning index scf_tuning_index = %d is larger than the number of entries %d in scf_parameters. Check your .ini file.",pba->scf_tuning_index,pba->scf_parameters_size);
+        // Although background verbose already prints the scalar field parameters 
+
+        // TK hard setting non attractor initial conditions here 
+        // pba->attractor_ic_scf = _FALSE_;
+
+        // Here, set phi_ini and beta 
+        // pba->H_t_scf = 1./2.; // p in notes
+        // pba->F_scf = 7./8.; // fancy F in notes 
+        double scf_phi_ini_calculated, scf_beta_calculated;
+        double log10_z_c_approx, f_ede_approx;
+
+        log10_z_c_approx = pba->scf_parameters[0];
+        // printf("log10_z_c_approx = %f \n", log10_z_c_approx);
+        f_ede_approx = pba->scf_parameters[2];
+        // printf("f_ede_approx = %f \n", f_ede_approx);
+
+        double rho_star = ( (pba->Omega0_b+pba->Omega0_cdm)*pow(1e3,3)*pow(pba->H0,2) // baryons + cdm
+                          + (pba->Omega0_g+pba->Omega0_ur)*pow(1e3,4)*pow(pba->H0,2) ); // radiation + neutrinos 
+        // rho_star is the energy density in a LCDM universe at recombination, actually set to redshift 1e3 
+        // enters through the scf potential definition 
+        // not being careful with units here as it's being divided by rho_c in all appearences
+
+        double rho_c_scf = ( (pba->Omega0_b+pba->Omega0_cdm)*pow(pow(10,log10_z_c_approx),3)*pow(pba->H0,2) // matter 
+                           + (pba->Omega0_g+pba->Omega0_ur)*pow(pow(10,log10_z_c_approx),4)*pow(pba->H0,2) ) // radiation
+                           * (1 + f_ede_approx); // add the energy density of the scalar field 
+        // rho_c_scf is the energy density in the universe when the field begins to dilute 
+
+        printf("rho_star = %e \trho_c_scf = %e \trho_star/rho_c = %e \n", rho_star, rho_c_scf, rho_star/rho_c_scf);
+
+        scf_beta_calculated = pow((2./3. * (1-pba->F_scf) / (3.*pba->F_scf*pba->H_t_scf + 1.) ),0.5) 
+                            * (1.+3.*pba->H_t_scf)/pba->H_t_scf 
+                            * rho_c_scf/rho_star 
+                            * pow(f_ede_approx,0.5);
+        // beta = Sqrt[ 2/3 * (1-F)(1+ 3Fp) ] (1+p)/p * rho_c/rho_star Sqrt[f_ede]
+
+        scf_phi_ini_calculated = 3./2. * pow(pba->H_t_scf,2) 
+                              / (1 + 3.*pba->H_t_scf) 
+                              / (1 - pba->F_scf) 
+                              * rho_star/rho_c_scf 
+                              * scf_beta_calculated;
+        // phi_ini / m_pl = 3./2. * p^2 / (1+3p) / (1-F) rho_star / rho_c * beta 
+        printf("z_c_approx = %e \t\t f_ede_approx = %e \nbeta = %e \t\t phi_ini/m_pl = %e \n", log10_z_c_approx, f_ede_approx, scf_beta_calculated, scf_phi_ini_calculated);
+
+        pba->scf_parameters[0] = log10(scf_beta_calculated);
+        pba->scf_parameters[2] = scf_phi_ini_calculated;
+
+        printf("Stored in scf_params list : %e %e \n", pba->scf_parameters[0], pba->scf_parameters[2]);
+
+        // TK ?????????????????????????????
+
+        class_call(parser_read_string(pfc,
+                                      "attractor_ic_scf",
+                                      &string1,
+                                      &flag1,
+                                      errmsg),
+                    errmsg,
+                    errmsg);
+
+        if (flag1 == _TRUE_){
+          if((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)){
+            pba->attractor_ic_scf = _TRUE_;
+          }
+          else{
+            pba->attractor_ic_scf = _FALSE_;
+            class_test(pba->scf_parameters_size<2,
+                   errmsg,
+                   "Since you are not using attractor initial conditions, you must specify phi and its derivative phi' as the last two entries in scf_parameters. See explanatory.ini for more details.");
+            pba->phi_ini_scf = pba->scf_parameters[pba->scf_parameters_size-2];
+            pba->phi_prime_ini_scf = pba->scf_parameters[pba->scf_parameters_size-1];
+            if (input_verbose>0) { 
+              printf("phi_ini = %e \t\t phi_prime_ini = %e \n", pba->phi_ini_scf, pba->phi_prime_ini_scf);
+            }
+          }
+        }
+
+        class_test(pba->scf_parameters_size<2,
+                   errmsg,
+                   "Since you are not using attractor initial conditions, you must specify phi and its derivative phi' as the last two entries in scf_parameters. See explanatory.ini for more details.");
+        pba->phi_ini_scf = pba->scf_parameters[pba->scf_parameters_size-2]; 
+        pba->phi_prime_ini_scf = pba->scf_parameters[pba->scf_parameters_size-1];
+
+        // TK Do we want to shoot for Omega_scf? 
+        // do_shooting is a parameter specifically for whether or not you want to shoot for Omega_scf
+        class_call(parser_read_string(pfc,"do_shooting",&string1,&flag1,errmsg),
+                   errmsg,
+                   errmsg);
+
+        if ((flag1 == _TRUE_) && ((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL))) {
+          pba->do_shooting = _TRUE_;
+        }
+
+        else { // TK current default for shooting is false 
+          pba->do_shooting = _FALSE_;
+          // If shooting is false, read the following double
+          class_call(parser_read_double(pfc,"Omega_scf_max",&param1,&flag1,errmsg),
+                     errmsg,
+                     errmsg);
+
+          if ((flag1 != _TRUE_)&&(input_verbose>1)){
+            printf("If you do not want to shoot for the value of phi_ini based on Omega_scf,\nideally you should define Omega_scf_max so a reasonable cosmology is produced.\nDefault assumes Omega_scf_max = 1e-7\n");
+          }
+
+          else{
+            pba->Omega0_scf_max = param1;
+            if (input_verbose>1){
+              printf("Not shooting for phi_ini of scalar field.\nMaximum allowed fractional density in scalar field today = %e\n", pba->Omega0_scf_max);
+            }
+          }
+
+
+        }
+
+
+
+
+    } // TK End read input for karwal-kamionkowski potential specifying z_c and f_ede input 
 
 
     else {
@@ -3044,6 +3179,11 @@ int input_default_params(
   pba->scf_parametrization = abl_sko; // TK added this as the default parametrisation for the scalar field potential 
   pba->do_shooting = _FALSE_; // TK set default to not shoot 
   pba->Omega0_scf_max = 1e-7; // TK set default maximum Omega_scf to allow to be order smaller than the last precision digit of Omega_lambda 
+  // TK params for inputting z_c and f_ede and calculating phi_ini and beta 
+  pba->H_t_scf = 1./2.;
+  pba->F_scf = 1./4.;
+  pba->z_c = 1e13;
+  pba->f_ede = 1e-8; //????????????????????????????
 
   pba->Omega0_k = 0.;
   pba->K = 0.;

@@ -268,6 +268,8 @@ int background_functions(
   int n_ncdm;
   /* fluid's time-dependent equation of state parameter */
   double w_fld, dw_over_da, integral_fld;
+  /* scalar field critical reshift and fractional energy density at z_c */
+  double z_c_new, f_ede_new, phi_c_new, counter_scf = 0;
   /* scale factor */
   double a;
   /* scalar field quantities */
@@ -430,6 +432,17 @@ int background_functions(
 
   /** - compute relativistic density to total density ratio */
   pvecback[pba->index_bg_Omega_r] = rho_r / rho_tot;
+
+  /* Scalar field critical redshift and fractional energy density at z_c calculations */ 
+  z_c_new = 1./a - 1.;
+  f_ede_new = pvecback[pba->index_bg_rho_scf]/rho_tot;
+  if(f_ede_new > pba->f_ede){
+    pba->z_c = z_c_new;
+    pba->f_ede = f_ede_new;
+
+    pba->phi_scf_c = pvecback[pba->index_bg_phi_scf];
+  }
+  // printf("z_c = %e \t\t f_ede = %e\n", pba->z_c, pba->f_ede);
 
   /** - compute other quantities in the exhaustive, redundant format */
   if (return_format == pba->long_info) {
@@ -1775,6 +1788,10 @@ int background_solve(
       printf("    Scalar field details:\n");
       printf("     -> Omega_scf = %g, wished %g\n",
              pvecback[pba->index_bg_rho_scf]/pvecback[pba->index_bg_rho_crit], pba->Omega0_scf);
+      if(pba->scf_parametrization == z_c_f_ede){ 
+        printf("     -> z_c = %e \t f_ede = %e\n", pba->z_c, pba->f_ede);
+        printf("     -> phi_c = %e \n", pba->phi_scf_c);
+      }
 
       class_test( ( (pba->Omega0_scf_max <= pvecback[pba->index_bg_rho_scf]/pvecback[pba->index_bg_rho_crit]) && (pba->do_shooting == _FALSE_) ), // TK check to see if you're not doing shooting and Omega_scf today is too big. 
                pba->error_message, // TK this is a problem 
@@ -2342,7 +2359,7 @@ double V_scf(
              double phi) {
 
   // TK added the karwal kamionkowski potential here 
-  if (pba->scf_parametrization == kar_kam ) {
+  if ((pba->scf_parametrization == kar_kam ) || (pba->scf_parametrization == z_c_f_ede )) {
     double scf_beta  = pow(10,pba->scf_parameters[0]); 
     double scf_epsilon  = pba->scf_parameters[1];
     double z_star = 1e3;
@@ -2364,7 +2381,7 @@ double dV_scf(
 	      double phi) {
 
   // TK added the karwal kamionkowski potential here 
-  if (pba->scf_parametrization == kar_kam ) {
+  if ((pba->scf_parametrization == kar_kam ) || (pba->scf_parametrization == z_c_f_ede )) {
     double scf_beta  = pow(10,pba->scf_parameters[0]); 
     double scf_epsilon  = pba->scf_parameters[1];
     double z_star = 1e3;
@@ -2386,7 +2403,7 @@ double ddV_scf(
                double phi) {
 
   // TK added the karwal kamionkowski potential here 
-  if (pba->scf_parametrization == kar_kam ) {
+  if ((pba->scf_parametrization == kar_kam ) || (pba->scf_parametrization == z_c_f_ede )) {
     double scf_beta  = pow(10,pba->scf_parameters[0]); 
     double scf_epsilon  = pba->scf_parameters[1];
     double z_star = 1e3;

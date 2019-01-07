@@ -12,7 +12,7 @@
 
 enum spatial_curvature {flat,open,closed};
 
-enum scf_parametrization {abl_sko, kar_kam}; /*** TK added scalar field parametrisation here. 
+enum scf_parametrization {abl_sko, kar_kam, z_c_f_ede}; /*** TK added scalar field parametrisation here. 
                                                   Can be based on the Albrecht & Skordis paper 9908085
                                                   Or based on our (Karwal & Kamionkowski) work */
 
@@ -92,6 +92,12 @@ struct background
   enum scf_parametrization scf_parametrization; /*** TK added scalar field parametrisation here. 
                                                     Can be based on the Albrecht & Skordis paper 9908085
                                                     Or based on our (Karwal & Kamionkowski) work */
+  double z_c; // want this to be log10_z_c? 
+  double f_ede; // TK added doubles to fill with values of the exact z_c and fraction_ede eventually 
+  double H_t_scf; // parameter describing how H is related to t. This is the 'p' param in my notes 
+  double F_scf; // fraction determining the field rolls when phi = F_scf * phi_ini
+
+  double phi_scf_c; // Added for debugging. Trying to see whether the value of phi at z_c is really 7/8 phi_ini 
 
   // TK Check whether we want to shoot for phi_ini or not
   // If do_shooting is false, CLASS will take input phi_ini, evolve it forward and use that to define rho_scf 
