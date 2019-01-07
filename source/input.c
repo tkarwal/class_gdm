@@ -1167,13 +1167,7 @@ int input_read_parameters(
               printf("Not shooting for phi_ini of scalar field.\nMaximum allowed fractional density in scalar field today = %e\n", pba->Omega0_scf_max);
             }
           }
-
-
         }
-
-
-
-
     } // TK End read input for karwal-kamionkowski potential 
 
 
@@ -1300,13 +1294,7 @@ int input_read_parameters(
               printf("Not shooting for phi_ini of scalar field.\nMaximum allowed fractional density in scalar field today = %e\n", pba->Omega0_scf_max);
             }
           }
-
-
         }
-
-
-
-
     } // TK End read input for karwal-kamionkowski potential specifying z_c and f_ede input 
 
 
@@ -1352,10 +1340,7 @@ int input_read_parameters(
             pba->phi_prime_ini_scf = pba->scf_parameters[pba->scf_parameters_size-1];
           }
         }
-
     } // TK End read input for original CLASS potential 
-
-
   } 
 
 
@@ -3180,7 +3165,7 @@ int input_default_params(
   pba->do_shooting = _FALSE_; // TK set default to not shoot 
   pba->Omega0_scf_max = 1e-7; // TK set default maximum Omega_scf to allow to be order smaller than the last precision digit of Omega_lambda 
   // TK params for inputting z_c and f_ede and calculating phi_ini and beta 
-  pba->H_t_scf = 1./2.;
+  pba->H_t_scf = 0.6; // This is p s.t. H(t) = p / t in either MD or RD, i.e. p = 1/2 or 2/3 
   pba->F_scf = 1./4.;
   pba->z_c = 1e13;
   pba->f_ede = 1e-8; //????????????????????????????
