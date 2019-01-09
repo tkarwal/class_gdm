@@ -1377,6 +1377,11 @@ cdef class Class:
             elif name == 'omega_m':
                 value = (self.ba.Omega0_b + self.ba.Omega0_cdm+
                          self.ba.Omega0_ncdm_tot + self.ba.Omega0_dcdm)/self.ba.h**2
+            # TK adding scf output params here 
+            elif name == 'z_c': 
+                value = self.ba.z_c
+            elif name == 'f_ede':
+                value = self.ba.f_ede
             elif name == 'tau_reio':
                 value = self.th.tau_reio
             elif name == 'z_reio':
