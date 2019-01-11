@@ -1227,7 +1227,7 @@ int input_read_parameters(
                               * rho_star/rho_c_scf 
                               * scf_beta_calculated;
         // phi_ini / m_pl = 3./2. * p^2 / (1+3p) / (1-F) rho_star / rho_c * beta 
-        if ( (input_verbose>1) || (pba->background_verbose>1) ){
+        if ( (input_verbose>1) ){ //|| (pba->background_verbose>1) ){
           printf("z_c_approx = %e \t\t f_ede_approx = %e \nbeta = %e \t\t phi_ini/m_pl = %e \n", 
             pow(10,log10_z_c_approx), f_ede_approx, scf_beta_calculated, scf_phi_ini_calculated);
         }
