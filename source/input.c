@@ -3169,9 +3169,9 @@ int input_default_params(
   pba->Omega0_scf_max = 1e-7; // TK set default maximum Omega_scf to allow to be order smaller than the last precision digit of Omega_lambda 
   // TK params for inputting z_c and f_ede and calculating phi_ini and beta 
   pba->H_t_scf = 0.6; // This is p s.t. H(t) = p / t in either MD or RD, i.e. p = 1/2 or 2/3 
-  pba->F_scf = 1./4.;
-  pba->z_c = 1e13;
-  pba->f_ede = 1e-8; //????????????????????????????
+  pba->F_scf = 1./4.; // This is F_scf s.t. phi_c = F_scf * phi_i 
+  // pba->log10_z_c = 1e13;
+  // pba->f_ede = 1e-8; //????????????????????????????
 
   pba->Omega0_k = 0.;
   pba->K = 0.;

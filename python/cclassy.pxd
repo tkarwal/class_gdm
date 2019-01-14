@@ -62,7 +62,7 @@ cdef extern from "class.h":
         double Omega0_dcdmdr
         double Omega0_scf
         # TK adding scf derived params here 
-        double z_c
+        double log10_z_c
         double f_ede
 
         int bt_size

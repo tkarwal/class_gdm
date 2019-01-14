@@ -437,12 +437,12 @@ int background_functions(
   z_c_new = 1./a - 1.;
   f_ede_new = pvecback[pba->index_bg_rho_scf]/rho_tot;
   if(f_ede_new > pba->f_ede){
-    pba->z_c = z_c_new;
+    pba->log10_z_c = log10(z_c_new);
     pba->f_ede = f_ede_new;
 
     pba->phi_scf_c = pvecback[pba->index_bg_phi_scf];
   }
-  // printf("z_c = %e \t\t f_ede = %e\n", pba->z_c, pba->f_ede);
+  // printf("log10(z_c) = %e \t\t f_ede = %e\n", pba->log10_z_c, pba->f_ede);
 
   /** - compute other quantities in the exhaustive, redundant format */
   if (return_format == pba->long_info) {
@@ -1789,7 +1789,7 @@ int background_solve(
       printf("     -> Omega_scf = %g, wished %g\n",
              pvecback[pba->index_bg_rho_scf]/pvecback[pba->index_bg_rho_crit], pba->Omega0_scf);
       if(pba->scf_parametrization == z_c_f_ede){ 
-        printf("     -> Exact z_c = %e \t f_ede = %e\n", pba->z_c, pba->f_ede);
+        printf("     -> Exact log10(z_c) = %e \t f_ede = %e\n", pba->log10_z_c, pba->f_ede);
         printf("     -> phi(z_c) = %e \n", pba->phi_scf_c);
       }
 
