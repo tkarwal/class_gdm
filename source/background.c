@@ -2363,11 +2363,24 @@ double V_scf(
     double scf_beta  = pow(10,pba->scf_parameters[0]); 
     double scf_epsilon  = pba->scf_parameters[1];
     double z_star = 1e3;
-    // beta * Omega_* * phi * 1/2*( tanh( beta*phi/epsilon ) + 1 )
-    return 3*scf_beta
-    *( (pba->Omega0_b+pba->Omega0_cdm)*pow(z_star,3)*pow(pba->H0,2) + (pba->Omega0_g+pba->Omega0_ur)*pow(z_star,4)*pow(pba->H0,2) ) 
-    *phi
-    *0.5*(tanh(scf_beta*phi/scf_epsilon) + 1.); 
+
+    // Discontinuous function without tanh 
+    if (phi >= 0.) {
+      return 3 * scf_beta * phi
+      // *( (pba->Omega0_b+pba->Omega0_cdm)*pow(z_star,3)*pow(pba->H0,2) + (pba->Omega0_g+pba->Omega0_ur)*pow(z_star,4)*pow(pba->H0,2) );
+      *( (0.3111)*pow(z_star,3)*pow(pba->H0,2) + (9.182e-5)*pow(z_star,4)*pow(pba->H0,2) ); // static potential eliminating complicated relatioships with Omega_m and Omega_r 
+    }
+    else {
+      return 0.;
+    }
+
+    // // Continuous function with tanh 
+    // // beta * Omega_tot(z_*) * phi * 1/2*( tanh( beta*phi/epsilon ) + 1 )
+    // return 3*scf_beta
+    // *( (pba->Omega0_b+pba->Omega0_cdm)*pow(z_star,3)*pow(pba->H0,2) + (pba->Omega0_g+pba->Omega0_ur)*pow(z_star,4)*pow(pba->H0,2) ) 
+    // *phi
+    // // *0.5*(tanh(scf_beta*phi/scf_epsilon) + 1.); 
+    // *0.5*(tanh(phi/scf_epsilon) + 1.); // no scf_beta in the tanh of the potential 
 
   }
 
@@ -2385,10 +2398,24 @@ double dV_scf(
     double scf_beta  = pow(10,pba->scf_parameters[0]); 
     double scf_epsilon  = pba->scf_parameters[1];
     double z_star = 1e3;
-    // beta * Omega_m * a_eq^-3 * 1/2*( tanh( beta*phi/epsilon ) + 1 )
-    return 3*scf_beta
-    *( (pba->Omega0_b+pba->Omega0_cdm)*pow(z_star,3)*pow(pba->H0,2) + (pba->Omega0_g+pba->Omega0_ur)*pow(z_star,4)*pow(pba->H0,2) ) 
-    *0.5*(tanh(scf_beta*phi/scf_epsilon) + 1.); 
+
+    // Discontinuous function without tanh 
+    if (phi >= 0.) {
+      return 3*scf_beta
+      // *( (pba->Omega0_b+pba->Omega0_cdm)*pow(z_star,3)*pow(pba->H0,2) + (pba->Omega0_g+pba->Omega0_ur)*pow(z_star,4)*pow(pba->H0,2) );
+      *( (0.3111)*pow(z_star,3)*pow(pba->H0,2) + (9.182e-5)*pow(z_star,4)*pow(pba->H0,2) ); // static potential eliminating complicated relatioships with Omega_m and Omega_r 
+    }
+    else {
+      return 0.;
+    }
+
+    // // Continuous function with tanh
+    // // beta * Omega_m * a_eq^-3 * 1/2*( tanh( beta*phi/epsilon ) + 1 )
+    // return 3*scf_beta
+    // *( (pba->Omega0_b+pba->Omega0_cdm)*pow(z_star,3)*pow(pba->H0,2) + (pba->Omega0_g+pba->Omega0_ur)*pow(z_star,4)*pow(pba->H0,2) ) 
+    // // *0.5*(tanh(scf_beta*phi/scf_epsilon) + 1.); 
+    // *0.5*(tanh(phi/scf_epsilon) + 1.); // no scf_beta in the tanh of the potential 
+
 
   }
 

@@ -1183,13 +1183,13 @@ int input_read_parameters(
                                                errmsg),
                    errmsg,errmsg);
         // TK just read this list and store it. We'll call the parameters directly later
-
         // TK ??????? Add to this area a print out of what's being read in eg. : 
         // printf("Tuning index scf_tuning_index = %d is larger than the number of entries %d in scf_parameters. Check your .ini file.",pba->scf_tuning_index,pba->scf_parameters_size);
         // Although background verbose already prints the scalar field parameters 
 
         // TK hard setting non attractor initial conditions here 
         // pba->attractor_ic_scf = _FALSE_;
+
 
         // Here, set phi_ini and beta 
         // pba->H_t_scf = 1./2.; // p in notes
@@ -1201,6 +1201,7 @@ int input_read_parameters(
         // printf("log10_z_c_approx = %f \n", log10_z_c_approx);
         f_ede_approx = pba->scf_parameters[2];
         // printf("f_ede_approx = %f \n", f_ede_approx);
+
 
         double rho_star = ( (pba->Omega0_b+pba->Omega0_cdm)*pow(1e3,3)*pow(pba->H0,2) // baryons + cdm
                           + (pba->Omega0_g+pba->Omega0_ur)*pow(1e3,4)*pow(pba->H0,2) ); // radiation + neutrinos 
