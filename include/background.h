@@ -13,7 +13,7 @@
 /** list of possible types of spatial curvature */
 
 enum spatial_curvature {flat,open,closed};
-enum w_fld_parametrization {CPL,pheno_axion,w_free_function,pheno_alternative};
+enum w_fld_parametrization {CPL,pheno_axion,pa_transition,w_free_function,pheno_alternative};
 
 /**
  * All background parameters and evolution that other modules need to know.
@@ -62,6 +62,8 @@ struct background
 		     in the frame comoving with the fluid (so, this is
 		     not [delta p/delta rho] in the synchronous or
 		     newtonian gauge!!!) */
+  double nu_fld; // TK pheno axion transition parameter under the pa_transition fluid switch 
+
 
    /** - TK added GDM parameters here */
    double w_gdm; /*** eq of state parameter of the GDM */

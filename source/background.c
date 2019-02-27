@@ -551,6 +551,19 @@ int background_w_fld(
     *integral_fld = 0; //to be computed numerically
     // printf("%e %e %e %e \n",a,*w_fld,*dw_over_da_fld,*integral_fld);
   }
+///////////
+    else if(pba->w_fld_parametrization == pa_transition){
+      if(n<50)w = (pba->n_pheno_axion[n]-1)/(1+pba->n_pheno_axion[n]); //e.o.s. once the field starts oscillating
+      else w =1;
+      *w_fld = (1+w)/(1+pow(pba->a_c[n]/a,3*(1+w)/pba->nu_fld))-1+1e-10; //we add 1e-10 to avoid a crashing of the solver. Checked to be totally invisible.
+      // *w_fld = (pow(a/ pba->a_today,6) - pow(pba->a_c/ pba->a_today,6))/(pow(a/ pba->a_today,6) + pow(pba->a_c/ pba->a_today,6));
+      *dw_over_da_fld = 0;
+      // *dw_over_da_fld = 3*pow(a/pba->a_today,-1-3*(1+w))*pba->a_c[n]/ pba->a_today*(1+w)*(1+w)/pow((1 + pba->a_c[n]/pba->a_today*pow(a/ pba->a_today,-3*(1+w))),2);
+      *integral_fld = 3*(1+w)*( log(pba->a_today/a) 
+        + pba->nu_fld/3/(1+w)*log( (1 + pow((pba->a_c[n]/pba->a_today),3*(1+w)/pba->nu_fld) ) / (1 + pow((pba->a_c[n]/a),3*(1+w)/pba->nu_fld) ) ) );
+      // printf("%e %e %e %e %e %e\n",a,w,*w_fld,*dw_over_da_fld,*integral_fld,pba->n_pheno_axion[n]);
+  }
+///////////
   // else if(pba->w_fld_parametrization == cos_axion){
   //   *w_fld = cos(pba->mu_axion)+0.5;
   //   *dw_over_da_fld = -sin();

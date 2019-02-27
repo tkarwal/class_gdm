@@ -1384,6 +1384,89 @@ int input_read_parameters(
 
 
        }
+       //////////////////////
+
+       else if((strstr(string1,"pa_transition") != NULL)) {
+        printf("Reading in pa_transition parameters\n");
+        pba->w_fld_parametrization = pa_transition;
+        class_call(parser_read_double(pfc,"Omega_fld",&param2,&flag2,errmsg),
+                    errmsg,
+                    errmsg);
+
+        if(flag2==_FALSE_){
+           class_call(parser_read_list_of_doubles(pfc,
+                                                  "Omega_many_fld",
+                                                  &(pba->n_fld),
+                                                  &(pba->Omega_many_fld),
+                                                  &flag2,
+                                                  errmsg),
+                      errmsg,errmsg);
+          class_call(parser_read_list_of_doubles(pfc,
+                                                 "fraction_axion",
+                                                 &(pba->n_fld),
+                                                 &(pba->Omega_many_fld),
+                                                 &flag3,
+                                                 errmsg),
+                     errmsg,errmsg);
+          if(flag2!=_FALSE_ || flag3!=_FALSE_){
+              class_test(flag2==_TRUE_&&flag3==_TRUE_,"you have passed both 'Omega_many_fld' and 'fraction_axion'. Please pass only one of them.",errmsg,errmsg);
+              for(n = 0; n < pba->n_fld; n++){
+                if(flag3==_TRUE_){
+                  pba->Omega_many_fld[n] = pba->Omega0_cdm*pba->Omega_many_fld[n]/(1-pba->Omega_many_fld[n]);
+                }
+                Omega_tot += pba->Omega_many_fld[n];
+              }
+          }
+          else if(flag2==_FALSE_&&flag3==_FALSE_){
+            class_stop(errmsg,"you have w_fld_parametrization defined but you forgot to give a value to Omega_fld, Omega_many_fld or fraction_axion. Please adapt you input file.")
+          }
+        }
+
+        else{
+          pba->n_fld = 1;
+        }
+        if(pba->n_fld!=0){
+          class_call(parser_read_list_of_doubles(pfc,
+                                                 "a_c",
+                                                 &int1,
+                                                 &(pba->a_c),
+                                                 &flag2,
+                                                 errmsg),
+                     errmsg,errmsg);
+          class_test(int1!=pba->n_fld,"Careful: the list of 'a_c' isn't equal to the list of 'Omega_many_fld'!",errmsg,errmsg);
+          class_alloc(pba->m_fld,sizeof(double)*pba->n_fld,pba->error_message);
+
+          class_call(parser_read_list_of_doubles(pfc,
+                                                 "n_pheno_axion",
+                                                 &int1,
+                                                 &(pba->n_pheno_axion),
+                                                 &flag2,
+                                                 errmsg),
+                     errmsg,errmsg);
+          class_test(int1!=pba->n_fld,"Careful: the list of 'n_pheno_axion' isn't equal to the list of 'Omega_many_fld'!",errmsg,errmsg);
+
+          class_call(parser_read_double(pfc,"nu_fld",&param2,&flag2,errmsg),
+                      errmsg,
+                      errmsg);  
+          if(flag2==_FALSE_) {
+            printf("You didn't pass a value for nu_fld. Defaulting to nu_fld = 1\n");
+          }
+          else{
+            pba->nu_fld = param2;
+            printf("nu_fld = %f\n", pba->nu_fld);
+          }
+
+        }
+
+       }
+
+
+
+
+
+
+
+       //////////////////////
        else if((strstr(string1,"pheno_alternative") != NULL)) {
          pba->w_fld_parametrization = pheno_alternative;
          class_call(parser_read_double(pfc,"Omega_fld",&param2,&flag2,errmsg),
@@ -3669,6 +3752,7 @@ int input_default_params(
   pba->fld_has_perturbations = _TRUE_;
   pba->axion_is_mu_and_alpha = _FALSE_;
   pba->axion_is_dark_energy = _FALSE_;
+  pba->nu_fld = 1; // nu_fld returns the original w_fld for the fluid approximation to axions 
 
   pba->shooting_failed = _FALSE_;
 

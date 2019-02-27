@@ -4386,7 +4386,7 @@ int perturb_initial_conditions(struct precision * ppr,
           if (pba->use_ppf == _FALSE_) {
             // if(w_fld==-1)w_fld+=0.3;
             // if(pba->w_fld_parametrization == pheno_axion && ppt->cs2_is_w == _TRUE_){
-            if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative){
+            if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition){
               // // cs2=fabs(w_fld);
               // // cs2 = k2/(4*pow(pba->m_fld[n],2)*a2)/(1+k2/(4*pow(pba->m_fld[n],2)*a2)); //Old w_fld_parametrization
               // cs2 = (2*a*a*(pba->n_pheno_axion[n]-1)*pow(pba->omega_axion[n]*pow(a,-3*(pba->n_pheno_axion[n]-1)/(pba->n_pheno_axion[n]+1)),2)+k*k)/(2*a*a*(pba->n_pheno_axion[n]+1)*pow(pba->omega_axion[n]*pow(a,-3*(pba->n_pheno_axion[n]-1)/(pba->n_pheno_axion[n]+1)),2)+k*k);
@@ -5587,7 +5587,7 @@ int perturb_total_stress_energy(
   double delta_rho_scf, delta_p_scf, psi;
   double c_gamma_k_H_square;
   double Gamma_prime_plus_a_prime_over_a_Gamma, alpha=0., s2sq=1.;
-  double center, width, cs2before, ca2before, cs2after, ca2after, z,a_over_ac;
+  double center, width, cs2before, ca2before, cs2after, ca2after, z,a_over_ac, exp_fld;
   /** - wavenumber and scale factor related quantities */
 
   a = ppw->pvecback[pba->index_bg_a];
@@ -5868,7 +5868,7 @@ int perturb_total_stress_energy(
           ca2 = w_fld - w_prime_fld / 3. / (1.+w_fld) / a_prime_over_a;
         }
 
-        if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative){
+        if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition){
           //assign cs2
           if(a<pba->a_c[n] && ppt->cs2_switch == _TRUE_){
             cs2 = 1; //default is 1
@@ -5885,8 +5885,15 @@ int perturb_total_stress_energy(
             }
           }
 
-          //assign ca2
-          if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
+          //assign ca2 // TK ca2_fld specified here 
+          if(pba->w_fld_parametrization == pa_transition){
+            exp_fld = 6*pba->n_pheno_axion[n]/(1+pba->n_pheno_axion[n])/pba->nu_fld;
+            ca2 = ( (pba->n_pheno_axion[n]-1)*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + pba->n_pheno_axion[n]*(pba->nu_fld + 2)) )
+                  /( 1 + pow((pba->a_c[n]/a),exp_fld) )
+                  /( 1 + pba->n_pheno_axion[n] )
+                  /pba->nu_fld;
+          }
+          else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
             center = 3*(1/pba->a_c[n]-1);
             z = 1/a-1;
             width = center/2;//found to work well at capturing the sharp transition
@@ -5897,7 +5904,6 @@ int perturb_total_stress_energy(
             ca2 = (ca2before - ca2after)*(tanh((z - center)/width) + 1)/2 + ca2after;
           }
           else{
-
             //real formula should be ca2=w_fld - w_prime_fld / 3. / (1.+w_fld) / a_prime_over_a; It is find to be unstable numerically because w_prime and 1+w goes to 0.
             a_over_ac = a/pba->a_c[n];
             ca2 = (pow(a,3)*pow(a_over_ac,3*pba->n_pheno_axion[n]/(1+pba->n_pheno_axion[n]))*(-1+pba->n_pheno_axion[n])-pow(a_over_ac,3/(1+pba->n_pheno_axion[n]))*pow(pba->a_c[n],3)*(1+3*pba->n_pheno_axion[n]))
@@ -6754,7 +6760,7 @@ int perturb_print_variables(double tau,
   int idx,index_q, storeidx;
   double *dataptr;
   double *Gamma_fld;
-  double center, width, cs2before, ca2before, cs2after, z, ca2after,a_over_ac;
+  double center, width, cs2before, ca2before, cs2after, z, ca2after,a_over_ac, exp_fld;
 
   /** - rename structure fields (just to avoid heavy notations) */
 
@@ -6928,7 +6934,7 @@ int perturb_print_variables(double tau,
           ca2[n] = w_fld - w_prime_fld / 3. / (1.+w_fld) / a_prime_over_a;
         }
 
-        if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative){
+        if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition){
           //assign cs2
           if(a<pba->a_c[n] && ppt->cs2_switch == _TRUE_){
             cs2[n] = 1; //default is 1
@@ -6945,8 +6951,15 @@ int perturb_print_variables(double tau,
             }
           }
 
-          //assign ca2
-          if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
+          //assign ca2 // TK ca2_fld specified here 
+          if(pba->w_fld_parametrization == pa_transition){
+            exp_fld = 6*pba->n_pheno_axion[n]/(1+pba->n_pheno_axion[n])/pba->nu_fld;
+            ca2[n] = ( (pba->n_pheno_axion[n]-1)*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + pba->n_pheno_axion[n]*(pba->nu_fld + 2)) )
+                  /( 1 + pow((pba->a_c[n]/a),exp_fld) )
+                  /( 1 + pba->n_pheno_axion[n] )
+                  /pba->nu_fld;
+          }
+          else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
             center = 3*(1/pba->a_c[n]-1);
             z = 1/a-1;
             width = center/2;//found to work well at capturing the sharp transition
@@ -7172,7 +7185,7 @@ int perturb_print_variables(double tau,
             ca2[n] = w_fld - w_prime_fld / 3. / (1.+w_fld) / a_prime_over_a;
           }
 
-          if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative){
+          if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition){
             //assign cs2
             if(a<pba->a_c[n] && ppt->cs2_switch == _TRUE_){
               cs2[n] = 1; //default is 1
@@ -7189,8 +7202,16 @@ int perturb_print_variables(double tau,
               }
             }
 
-            //assign ca2
-            if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
+            
+            //assign ca2 // TK ca2_fld specified here 
+            if(pba->w_fld_parametrization == pa_transition){
+              exp_fld = 6*pba->n_pheno_axion[n]/(1+pba->n_pheno_axion[n])/pba->nu_fld;
+              ca2[n] = ( (pba->n_pheno_axion[n]-1)*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + pba->n_pheno_axion[n]*(pba->nu_fld + 2)) )
+                    /( 1 + pow((pba->a_c[n]/a),exp_fld) )
+                    /( 1 + pba->n_pheno_axion[n] )
+                    /pba->nu_fld;
+            }
+            else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
               center = 3*(1/pba->a_c[n]-1);
               z = 1/a-1;
               width = center/2;//found to work well at capturing the sharp transition
@@ -7612,7 +7633,7 @@ int perturb_derivs(double tau,
   /* for use with fluid (fld): */
   double w_fld,dw_over_da_fld,w_prime_fld,integral_fld;
   int n;
-  double center, width, cs2before, ca2before, cs2after, ca2after, z,a_over_ac;
+  double center, width, cs2before, ca2before, cs2after, ca2after, z,a_over_ac, exp_fld;
   /* for use with non-cold dark matter (ncdm): */
   int index_q,n_ncdm,idx;
   double q,epsilon,dlnf0_dlnq,qk_div_epsilon;
@@ -8037,7 +8058,7 @@ int perturb_derivs(double tau,
                 ca2 = w_fld - w_prime_fld / 3. / (1.+w_fld) / a_prime_over_a;
               }
 
-              if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative){
+              if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition){
                 //assign cs2
                 if(a<pba->a_c[n] && ppt->cs2_switch == _TRUE_){
                   cs2 = 1; //default is 1
@@ -8054,8 +8075,15 @@ int perturb_derivs(double tau,
                   }
                 }
 
-                //assign ca2
-                if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
+                //assign ca2 // TK ca2_fld specified here 
+                if(pba->w_fld_parametrization == pa_transition){
+                  exp_fld = 6*pba->n_pheno_axion[n]/(1+pba->n_pheno_axion[n])/pba->nu_fld;
+                  ca2 = ( (pba->n_pheno_axion[n]-1)*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + pba->n_pheno_axion[n]*(pba->nu_fld + 2)) )
+                        /( 1 + pow((pba->a_c[n]/a),exp_fld) )
+                        /( 1 + pba->n_pheno_axion[n] )
+                        /pba->nu_fld;
+                }
+                else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
                   center = 3*(1/pba->a_c[n]-1);
                   z = 1/a-1;
                   width = center/2;//found to work well at capturing the sharp transition
