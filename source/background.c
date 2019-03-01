@@ -559,9 +559,10 @@ int background_w_fld(
       // *w_fld = (pow(a/ pba->a_today,6) - pow(pba->a_c/ pba->a_today,6))/(pow(a/ pba->a_today,6) + pow(pba->a_c/ pba->a_today,6));
       *dw_over_da_fld = 0;
       // *dw_over_da_fld = 3*pow(a/pba->a_today,-1-3*(1+w))*pba->a_c[n]/ pba->a_today*(1+w)*(1+w)/pow((1 + pba->a_c[n]/pba->a_today*pow(a/ pba->a_today,-3*(1+w))),2);
-      *integral_fld = 3*(1+w)*( log(pba->a_today/a) 
+      *integral_fld = //-3*(1+w)*log(a/pba->a_today) - pba->nu_fld*log(1+ pow(pba->a_c[n]/a,3*(1+w)/pba->nu_fld));
+        3*(1+w)*( log(pba->a_today/a) 
         + pba->nu_fld/3/(1+w)*log( (1 + pow((pba->a_c[n]/pba->a_today),3*(1+w)/pba->nu_fld) ) / (1 + pow((pba->a_c[n]/a),3*(1+w)/pba->nu_fld) ) ) );
-      // printf("%e %e %e %e %e %e\n",a,w,*w_fld,*dw_over_da_fld,*integral_fld,pba->n_pheno_axion[n]);
+      // printf("%e %e %e %e %e %e %e\n",a,w,*w_fld,*dw_over_da_fld,*integral_fld,exp(*integral_fld),pba->n_pheno_axion[n]);
   }
 ///////////
   // else if(pba->w_fld_parametrization == cos_axion){
