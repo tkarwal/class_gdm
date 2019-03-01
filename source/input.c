@@ -1388,7 +1388,7 @@ int input_read_parameters(
       //////////////////////
 
       else if((strstr(string1,"pa_transition") != NULL)) {
-        printf("Reading in pa_transition parameters\n");
+        if(input_verbose > 1)printf("Reading in pa_transition parameters\n");
         pba->w_fld_parametrization = pa_transition;
 
         class_call(parser_read_double(pfc,"Omega_Lambda",&param1,&flag1,errmsg),
@@ -1550,11 +1550,11 @@ int input_read_parameters(
                     errmsg,
                     errmsg);  
         if(flag2==_FALSE_) {
-          printf("You didn't pass a value for nu_fld. Defaulting to nu_fld = 1\n");
+          if(input_verbose>1)printf("You didn't pass a value for nu_fld. Defaulting to nu_fld = 1\n");
         }
         else{
           pba->nu_fld = param2;
-          printf("nu_fld = %f\n", pba->nu_fld);
+          if(input_verbose>1)printf("nu_fld = %f\n", pba->nu_fld);
         }
 
 
@@ -1623,12 +1623,12 @@ int input_read_parameters(
                  class_test(int1!=pba->n_fld,"Careful: the list of 'n_pheno_axion' isn't equal to the list of 'Omega_many_fld'!",errmsg,errmsg);
               }
 
-       }
-       else{
+      }
+      else{
          /* the standard CPL w(a) = w_0 + (1-a)w_a parametrization */
          pba->w_fld_parametrization = CPL;
-       }
-     }
+      }
+    }
 
      if(pba->w_fld_parametrization == CPL){
        /* the standard CPL w(a) = w_0 + (1-a)w_a parametrization */
@@ -1652,6 +1652,7 @@ int input_read_parameters(
 
 
      if(pba->n_fld != 0 ){
+      // printf("Reading in fld cs2 params \n");
        /* additional parameters if there's an exotic fluid */
        class_call(parser_read_string(pfc,
                                      "fld_has_perturbations",
@@ -1675,7 +1676,7 @@ int input_read_parameters(
          }
 
 
-
+        // printf("Definitely reading in fld cs2 params .........\n");
         class_read_double("cs2_fld",pba->cs2_fld);
         class_call(parser_read_string(pfc,
                                       "cs2_is_1",
