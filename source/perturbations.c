@@ -5587,7 +5587,7 @@ int perturb_total_stress_energy(
   double delta_rho_scf, delta_p_scf, psi;
   double c_gamma_k_H_square;
   double Gamma_prime_plus_a_prime_over_a_Gamma, alpha=0., s2sq=1.;
-  double center, width, cs2before, ca2before, cs2after, ca2after, z,a_over_ac, exp_fld;
+  double center, width, cs2before, ca2before, cs2after, ca2after, z,a_over_ac, exp_fld, wn_fld;
   /** - wavenumber and scale factor related quantities */
 
   a = ppw->pvecback[pba->index_bg_a];
@@ -5887,10 +5887,13 @@ int perturb_total_stress_energy(
 
           //assign ca2 // TK ca2_fld specified here 
           if(pba->w_fld_parametrization == pa_transition){
-            exp_fld = 6*pba->n_pheno_axion[n]/(1+pba->n_pheno_axion[n])/pba->nu_fld;
-            ca2 = ( (pba->n_pheno_axion[n]-1)*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + pba->n_pheno_axion[n]*(pba->nu_fld + 2)) )
+            if(pba->n_pheno_axion[n]>50) wn_fld = 1;
+            else wn_fld = (-1+pba->n_pheno_axion[n])/(1+pba->n_pheno_axion[n]);
+
+            exp_fld = 3*(1+wn_fld)/pba->nu_fld;
+
+            ca2 = ( wn_fld*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + 1 + wn_fld) )
                   /( 1 + pow((pba->a_c[n]/a),exp_fld) )
-                  /( 1 + pba->n_pheno_axion[n] )
                   /pba->nu_fld;
           }
           else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
@@ -6760,7 +6763,7 @@ int perturb_print_variables(double tau,
   int idx,index_q, storeidx;
   double *dataptr;
   double *Gamma_fld;
-  double center, width, cs2before, ca2before, cs2after, z, ca2after,a_over_ac, exp_fld;
+  double center, width, cs2before, ca2before, cs2after, z, ca2after,a_over_ac, exp_fld, wn_fld;
 
   /** - rename structure fields (just to avoid heavy notations) */
 
@@ -6953,11 +6956,15 @@ int perturb_print_variables(double tau,
 
           //assign ca2 // TK ca2_fld specified here 
           if(pba->w_fld_parametrization == pa_transition){
-            exp_fld = 6*pba->n_pheno_axion[n]/(1+pba->n_pheno_axion[n])/pba->nu_fld;
-            ca2[n] = ( (pba->n_pheno_axion[n]-1)*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + pba->n_pheno_axion[n]*(pba->nu_fld + 2)) )
+            if(pba->n_pheno_axion[n]>50) wn_fld = 1;
+            else wn_fld = (-1+pba->n_pheno_axion[n])/(1+pba->n_pheno_axion[n]);
+
+            exp_fld = 3*(1+wn_fld)/pba->nu_fld;
+            
+            ca2[n] = ( wn_fld*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + 1 + wn_fld) )
                   /( 1 + pow((pba->a_c[n]/a),exp_fld) )
-                  /( 1 + pba->n_pheno_axion[n] )
                   /pba->nu_fld;
+
           }
           else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
             center = 3*(1/pba->a_c[n]-1);
@@ -7205,12 +7212,16 @@ int perturb_print_variables(double tau,
             
             //assign ca2 // TK ca2_fld specified here 
             if(pba->w_fld_parametrization == pa_transition){
-              exp_fld = 6*pba->n_pheno_axion[n]/(1+pba->n_pheno_axion[n])/pba->nu_fld;
-              ca2[n] = ( (pba->n_pheno_axion[n]-1)*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + pba->n_pheno_axion[n]*(pba->nu_fld + 2)) )
-                    /( 1 + pow((pba->a_c[n]/a),exp_fld) )
-                    /( 1 + pba->n_pheno_axion[n] )
-                    /pba->nu_fld;
+            if(pba->n_pheno_axion[n]>50) wn_fld = 1;
+            else wn_fld = (-1+pba->n_pheno_axion[n])/(1+pba->n_pheno_axion[n]);
+
+            exp_fld = 3*(1+wn_fld)/pba->nu_fld;
+            
+            ca2[n] = ( wn_fld*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + 1 + wn_fld) )
+                  /( 1 + pow((pba->a_c[n]/a),exp_fld) )
+                  /pba->nu_fld;
             }
+
             else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
               center = 3*(1/pba->a_c[n]-1);
               z = 1/a-1;
@@ -7633,7 +7644,7 @@ int perturb_derivs(double tau,
   /* for use with fluid (fld): */
   double w_fld,dw_over_da_fld,w_prime_fld,integral_fld;
   int n;
-  double center, width, cs2before, ca2before, cs2after, ca2after, z,a_over_ac, exp_fld;
+  double center, width, cs2before, ca2before, cs2after, ca2after, z,a_over_ac, exp_fld, wn_fld;
   /* for use with non-cold dark matter (ncdm): */
   int index_q,n_ncdm,idx;
   double q,epsilon,dlnf0_dlnq,qk_div_epsilon;
@@ -8077,10 +8088,13 @@ int perturb_derivs(double tau,
 
                 //assign ca2 // TK ca2_fld specified here 
                 if(pba->w_fld_parametrization == pa_transition){
-                  exp_fld = 6*pba->n_pheno_axion[n]/(1+pba->n_pheno_axion[n])/pba->nu_fld;
-                  ca2 = ( (pba->n_pheno_axion[n]-1)*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + pba->n_pheno_axion[n]*(pba->nu_fld + 2)) )
+                  if(pba->n_pheno_axion[n]>50) wn_fld = 1;
+                  else wn_fld = (-1+pba->n_pheno_axion[n])/(1+pba->n_pheno_axion[n]);
+
+                  exp_fld = 3*(1+wn_fld)/pba->nu_fld;
+                  
+                  ca2 = ( wn_fld*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + 1 + wn_fld) )
                         /( 1 + pow((pba->a_c[n]/a),exp_fld) )
-                        /( 1 + pba->n_pheno_axion[n] )
                         /pba->nu_fld;
                 }
                 else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){

@@ -425,6 +425,8 @@ int background_functions(
       rho_tot += pvecback[pba->index_bg_rho_fld+n];
       p_tot += w_fld * pvecback[pba->index_bg_rho_fld+n];
 
+      pvecback[pba->index_bg_V_fld+n] = (1-w_fld)*pvecback[pba->index_bg_rho_fld+n]/2;
+
       rho_m += pvecback[pba->index_bg_rho_fld+n] - 3*w_fld * pvecback[pba->index_bg_rho_fld+n];
       rho_r += 3*w_fld * pvecback[pba->index_bg_rho_fld+n];
     }
@@ -1505,6 +1507,9 @@ int background_indices(
   class_define_index(pba->index_bg_rho_fld,pba->has_fld,index_bg,pba->n_fld);
   class_define_index(pba->index_bg_w_fld,pba->has_fld,index_bg,pba->n_fld);
   class_define_index(pba->index_bg_dw_fld,pba->has_fld,index_bg,pba->n_fld);
+  if(pba->w_fld_parametrization = pa_transition){ // TK does this work ? 
+    class_define_index(pba->index_bg_V_fld,pba->has_fld,index_bg,pba->n_fld);
+  }
 
   /* - index for ultra-relativistic neutrinos/species */
   class_define_index(pba->index_bg_rho_ur,pba->has_ur,index_bg,1);
@@ -2829,6 +2834,9 @@ int background_output_titles(struct background * pba,
       sprintf(tmp,"(.)dw_fld[%d]",n);
       class_store_columntitle(titles,tmp,_TRUE_);
       }
+      if(pba->w_fld_parametrization = pa_transition){
+        class_store_columntitle(titles,"V_fld",pba->has_fld);
+      }
 
     }
   }
@@ -2899,6 +2907,9 @@ int background_output_data(
         }
         else {
           class_store_double(dataptr,pvecback[pba->index_bg_dw_fld+n],pba->has_fld,storeidx);
+        }
+        if(pba->w_fld_parametrization = pa_transition){
+          class_store_double(dataptr,pvecback[pba->index_bg_V_fld+n],pba->has_fld,storeidx);
         }
       }
     }
