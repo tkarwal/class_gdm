@@ -1403,6 +1403,17 @@ int input_read_parameters(
           pba->Omega0_fld = 1. - pba->Omega0_k - Omega_tot;
         }
         if(flag2==_FALSE_){
+          // definitely read in nu_fld
+          class_call(parser_read_double(pfc,"nu_fld",&param2,&flag2,errmsg),
+                      errmsg,
+                      errmsg);  
+          if(flag2==_FALSE_) {
+            if(input_verbose>1)printf("You didn't pass a value for nu_fld. Defaulting to nu_fld = 1\n");
+          }
+          else{
+            pba->nu_fld = param2;
+            if(input_verbose>1)printf("nu_fld = %f\n", pba->nu_fld);
+          }
                 /* one can specify the axion density in many ways */
           class_call(parser_read_list_of_doubles(pfc,
                                                   "omega_many_fld", //physical density today
@@ -1521,7 +1532,8 @@ int input_read_parameters(
 
             class_alloc(pba->omega_axion,sizeof(double)*pba->n_fld,pba->error_message);
             for(n = 0; n < pba->n_fld; n++){
-              wn = (pba->n_pheno_axion[n]-1)/(pba->n_pheno_axion[n]+1);
+              if(pba->n_pheno_axion[n] > 50)wn = 1;
+              else wn = (pba->n_pheno_axion[n]-1)/(pba->n_pheno_axion[n]+1);
               if(pba->Omega_many_fld[n] == 0){
                 if(flag5 == _TRUE_){
                       printf("Omega_r %e\n", (pba->Omega0_g+pba->Omega0_ur));
@@ -1530,13 +1542,16 @@ int input_read_parameters(
                       if(pba->Omega_fld_ac[n]!=1.0)pba->Omega_fld_ac[n] = Omega_tot_ac*pba->Omega_fld_ac[n]/(1-pba->Omega_fld_ac[n]);
                       // printf("%s\n", );
                 }
-                pba->Omega_many_fld[n] = 2*pba->Omega_fld_ac[n]/(pow(pba->a_today/pba->a_c[n],3*(wn+1))+1);
+                pba->Omega_many_fld[n] = pow(2,pba->nu_fld)*pba->Omega_fld_ac[n]
+                                         /pow(pba->a_today/pba->a_c[n],3*(wn+1))
+                                         /pow((1+ pow( pba->a_c[n]/pba->a_today , 3*(1+wn)/pba->nu_fld )) , pba->nu_fld);
                 Omega_tot += pba->Omega_many_fld[n];
                 printf("pba->Omega_many_fld[n] %e\n", pba->Omega_many_fld[n]);
                 }
 
                 else if(pba->Omega_fld_ac[n] == 0){
-                  pba->Omega_fld_ac[n] = pba->Omega_many_fld[n]*(pow(pba->a_today/pba->a_c[n],3*(wn+1))+1)/2;
+                  pba->Omega_fld_ac[n] = pba->Omega_many_fld[n]*pow((1+ pow( pba->a_c[n]/pba->a_today , 3*(1+wn)/pba->nu_fld ))/2 , pba->nu_fld)
+                                                               *pow(pba->a_today/pba->a_c[n],3*(wn+1));
                 }
                 Omega_tot_ac = (pba->Omega0_cdm+pba->Omega0_b)*pow(pba->a_c[n],-3)+(pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[n],-4)+pba->Omega0_lambda;
 
@@ -1545,18 +1560,6 @@ int input_read_parameters(
             }
           }
         }
-
-        class_call(parser_read_double(pfc,"nu_fld",&param2,&flag2,errmsg),
-                    errmsg,
-                    errmsg);  
-        if(flag2==_FALSE_) {
-          if(input_verbose>1)printf("You didn't pass a value for nu_fld. Defaulting to nu_fld = 1\n");
-        }
-        else{
-          pba->nu_fld = param2;
-          if(input_verbose>1)printf("nu_fld = %f\n", pba->nu_fld);
-        }
-
 
       }
 
