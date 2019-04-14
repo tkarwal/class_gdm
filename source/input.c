@@ -1537,7 +1537,8 @@ int input_read_parameters(
               else wn = (pba->n_pheno_axion[n]-1)/(pba->n_pheno_axion[n]+1);
               if(pba->Omega_many_fld[n] == 0){
                 if(flag5 == _TRUE_){
-                      printf("Omega_r %e\n", (pba->Omega0_g+pba->Omega0_ur));
+                      // printf("Omega_r %e\n", (pba->Omega0_g+pba->Omega0_ur));
+                      printf("H_0 = %e\n", (100*pba->h));
                       Omega_tot_ac = (pba->Omega0_cdm+pba->Omega0_b)*pow(pba->a_c[n],-3)+(pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[n],-4)+pba->Omega0_lambda;
                       class_test(pba->Omega_fld_ac[n]==1.0,"you cannot have pba->Omega_fld_ac[n]=1.0!",errmsg,errmsg);
                       if(pba->Omega_fld_ac[n]!=1.0)pba->Omega_fld_ac[n] = Omega_tot_ac*pba->Omega_fld_ac[n]/(1-pba->Omega_fld_ac[n]);
