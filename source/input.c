@@ -1391,6 +1391,18 @@ int input_read_parameters(
         if(input_verbose > 1)printf("Reading in pa_transition parameters\n");
         pba->w_fld_parametrization = pa_transition;
 
+        // definitely read in nu_fld
+        class_call(parser_read_double(pfc,"nu_fld",&param2,&flag2,errmsg),
+                    errmsg,
+                    errmsg);  
+        if(flag2==_FALSE_) {
+          if(input_verbose>1)printf("You didn't pass a value for nu_fld. Defaulting to nu_fld = 1\n");
+        }
+        else{
+          pba->nu_fld = param2;
+          if(input_verbose>1)printf("nu_fld = %f\n", pba->nu_fld);
+        }
+
         class_call(parser_read_double(pfc,"Omega_Lambda",&param1,&flag1,errmsg),
                   errmsg,
                   errmsg);
@@ -1403,17 +1415,6 @@ int input_read_parameters(
           pba->Omega0_fld = 1. - pba->Omega0_k - Omega_tot;
         }
         if(flag2==_FALSE_){
-          // definitely read in nu_fld
-          class_call(parser_read_double(pfc,"nu_fld",&param2,&flag2,errmsg),
-                      errmsg,
-                      errmsg);  
-          if(flag2==_FALSE_) {
-            if(input_verbose>1)printf("You didn't pass a value for nu_fld. Defaulting to nu_fld = 1\n");
-          }
-          else{
-            pba->nu_fld = param2;
-            if(input_verbose>1)printf("nu_fld = %f\n", pba->nu_fld);
-          }
                 /* one can specify the axion density in many ways */
           class_call(parser_read_list_of_doubles(pfc,
                                                   "omega_many_fld", //physical density today
