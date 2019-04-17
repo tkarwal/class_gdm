@@ -63,6 +63,7 @@ struct background
 		     not [delta p/delta rho] in the synchronous or
 		     newtonian gauge!!!) */
   double nu_fld; // TK pheno axion transition parameter under the pa_transition fluid switch 
+  double n_cap_infinity;
 
 
    /** - TK added GDM parameters here */

@@ -533,6 +533,7 @@ int background_w_fld(
   }
   else if(pba->w_fld_parametrization == pheno_axion){
     if(n<50)w = (pba->n_pheno_axion[n]-1)/(1+pba->n_pheno_axion[n]); //e.o.s. once the field starts oscillating
+    // TK this is a bug? n refers to the nth field, not n_pheno_axion. So it should be if n_pheno_axion > 50, set w_n = 1
     else w =1;
     *w_fld = (1+w)/(1+pow(pba->a_c[n]/a,3*(1+w)))-1+1e-10; //we add 1e-10 to avoid a crashing of the solver. Checked to be totally invisible.
     // *w_fld = (pow(a/ pba->a_today,6) - pow(pba->a_c/ pba->a_today,6))/(pow(a/ pba->a_today,6) + pow(pba->a_c/ pba->a_today,6));
@@ -555,8 +556,9 @@ int background_w_fld(
   }
 ///////////
     else if(pba->w_fld_parametrization == pa_transition){
-      if(n<50)w = (pba->n_pheno_axion[n]-1)/(1+pba->n_pheno_axion[n]); //e.o.s. once the field starts oscillating
+      if(pba->n_pheno_axion[n] <= pba->n_cap_infinity)w = (pba->n_pheno_axion[n]-1)/(1+pba->n_pheno_axion[n]); //e.o.s. once the field starts oscillating
       else w =1;
+      // printf("n > %f is infinity \t n = %f and w_n = %f\n", pba->n_cap_infinity, pba->n_pheno_axion[n],w);
       *w_fld = (1+w)/(1+pow(pba->a_c[n]/a,3*(1+w)/pba->nu_fld))-1+1e-10; //we add 1e-10 to avoid a crashing of the solver. Checked to be totally invisible.
       // *w_fld = (pow(a/ pba->a_today,6) - pow(pba->a_c/ pba->a_today,6))/(pow(a/ pba->a_today,6) + pow(pba->a_c/ pba->a_today,6));
       *dw_over_da_fld = 0;

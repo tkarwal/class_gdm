@@ -1403,6 +1403,17 @@ int input_read_parameters(
           if(input_verbose>1)printf("nu_fld = %f\n", pba->nu_fld);
         }
 
+        class_call(parser_read_double(pfc,"n_cap_infinity",&param2,&flag2,errmsg),
+                    errmsg,
+                    errmsg);  
+        if(flag2==_FALSE_) {
+          if(input_verbose>2)printf("Assuming default n > %f makes n = infinity\n", pba->n_cap_infinity);
+        }
+        else{
+          pba->n_cap_infinity = param2;
+          if(input_verbose>2)printf("Assuming n > %f makes n = infinity\n", pba->n_cap_infinity);
+        }
+
         class_call(parser_read_double(pfc,"Omega_Lambda",&param1,&flag1,errmsg),
                   errmsg,
                   errmsg);
@@ -1533,7 +1544,7 @@ int input_read_parameters(
 
             class_alloc(pba->omega_axion,sizeof(double)*pba->n_fld,pba->error_message);
             for(n = 0; n < pba->n_fld; n++){
-              if(pba->n_pheno_axion[n] > 50)wn = 1;
+              if(pba->n_pheno_axion[n] > pba->n_cap_infinity)wn = 1;
               else wn = (pba->n_pheno_axion[n]-1)/(pba->n_pheno_axion[n]+1);
               if(pba->Omega_many_fld[n] == 0){
                 if(flag5 == _TRUE_){
@@ -3854,6 +3865,7 @@ int input_default_params(
   pba->axion_is_mu_and_alpha = _FALSE_;
   pba->axion_is_dark_energy = _FALSE_;
   pba->nu_fld = 1; // nu_fld returns the original w_fld for the fluid approximation to axions 
+  pba->n_cap_infinity = 50;
 
   pba->shooting_failed = _FALSE_;
 
