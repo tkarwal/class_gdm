@@ -1549,7 +1549,7 @@ int input_read_parameters(
               if(pba->Omega_many_fld[n] == 0){
                 if(flag5 == _TRUE_){
                       // printf("Omega_r %e\n", (pba->Omega0_g+pba->Omega0_ur));
-                      printf("H_0 = %e\n", (100*pba->h));
+                      // printf("H_0 = %e\n", (100*pba->h));
                       Omega_tot_ac = (pba->Omega0_cdm+pba->Omega0_b)*pow(pba->a_c[n],-3)+(pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[n],-4)+pba->Omega0_lambda;
                       class_test(pba->Omega_fld_ac[n]==1.0,"you cannot have pba->Omega_fld_ac[n]=1.0!",errmsg,errmsg);
                       if(pba->Omega_fld_ac[n]!=1.0)pba->Omega_fld_ac[n] = Omega_tot_ac*pba->Omega_fld_ac[n]/(1-pba->Omega_fld_ac[n]);
@@ -1559,7 +1559,7 @@ int input_read_parameters(
                                          /pow(pba->a_today/pba->a_c[n],3*(wn+1))
                                          /pow((1+ pow( pba->a_c[n]/pba->a_today , 3*(1+wn)/pba->nu_fld )) , pba->nu_fld);
                 Omega_tot += pba->Omega_many_fld[n];
-                printf("pba->Omega_many_fld[n] %e\n", pba->Omega_many_fld[n]);
+                // printf("pba->Omega_many_fld[n] %e\n", pba->Omega_many_fld[n]);
                 }
 
                 else if(pba->Omega_fld_ac[n] == 0){
