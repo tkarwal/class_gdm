@@ -4386,7 +4386,7 @@ int perturb_initial_conditions(struct precision * ppr,
           if (pba->use_ppf == _FALSE_) {
             // if(w_fld==-1)w_fld+=0.3;
             // if(pba->w_fld_parametrization == pheno_axion && ppt->cs2_is_w == _TRUE_){
-            if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition){
+            if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition || pba->w_fld_parametrization == ADE){
               // // cs2=fabs(w_fld);
               // // cs2 = k2/(4*pow(pba->m_fld[n],2)*a2)/(1+k2/(4*pow(pba->m_fld[n],2)*a2)); //Old w_fld_parametrization
               // cs2 = (2*a*a*(pba->n_pheno_axion[n]-1)*pow(pba->omega_axion[n]*pow(a,-3*(pba->n_pheno_axion[n]-1)/(pba->n_pheno_axion[n]+1)),2)+k*k)/(2*a*a*(pba->n_pheno_axion[n]+1)*pow(pba->omega_axion[n]*pow(a,-3*(pba->n_pheno_axion[n]-1)/(pba->n_pheno_axion[n]+1)),2)+k*k);
@@ -5868,7 +5868,7 @@ int perturb_total_stress_energy(
           ca2 = w_fld - w_prime_fld / 3. / (1.+w_fld) / a_prime_over_a;
         }
 
-        if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition){
+        if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition || pba->w_fld_parametrization == ADE){
           //assign cs2
           if(a<pba->a_c[n] && ppt->cs2_switch == _TRUE_){
             cs2 = 1; //default is 1
@@ -5887,7 +5887,7 @@ int perturb_total_stress_energy(
 
           //assign ca2 // TK ca2_fld specified here 
           if(pba->w_fld_parametrization == pa_transition){
-            if(pba->n_pheno_axion[n]>50) wn_fld = 1;
+            if(pba->n_pheno_axion[n]>pba->n_cap_infinity) wn_fld = 1;
             else wn_fld = (-1+pba->n_pheno_axion[n])/(1+pba->n_pheno_axion[n]);
 
             exp_fld = 3*(1+wn_fld)/pba->nu_fld;
@@ -5895,6 +5895,9 @@ int perturb_total_stress_energy(
             ca2 = ( wn_fld*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + 1 + wn_fld) )
                   /( 1 + pow((pba->a_c[n]/a),exp_fld) )
                   /pba->nu_fld;
+          }
+          if(pba->w_fld_parametrization == ADE){
+            ca2 = w_fld - (1+pba->w0_fld)/(1 + pow(a/pba->a_c[n], 6*(1+pba->w0_fld)));
           }
           else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
             center = 3*(1/pba->a_c[n]-1);
@@ -6937,7 +6940,7 @@ int perturb_print_variables(double tau,
           ca2[n] = w_fld - w_prime_fld / 3. / (1.+w_fld) / a_prime_over_a;
         }
 
-        if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition){
+        if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition || pba->w_fld_parametrization == ADE){
           //assign cs2
           if(a<pba->a_c[n] && ppt->cs2_switch == _TRUE_){
             cs2[n] = 1; //default is 1
@@ -6956,7 +6959,7 @@ int perturb_print_variables(double tau,
 
           //assign ca2 // TK ca2_fld specified here 
           if(pba->w_fld_parametrization == pa_transition){
-            if(pba->n_pheno_axion[n]>50) wn_fld = 1;
+            if(pba->n_pheno_axion[n]>pba->n_cap_infinity) wn_fld = 1;
             else wn_fld = (-1+pba->n_pheno_axion[n])/(1+pba->n_pheno_axion[n]);
 
             exp_fld = 3*(1+wn_fld)/pba->nu_fld;
@@ -6965,6 +6968,9 @@ int perturb_print_variables(double tau,
                   /( 1 + pow((pba->a_c[n]/a),exp_fld) )
                   /pba->nu_fld;
 
+          }
+          if(pba->w_fld_parametrization == ADE){
+            ca2[n] = w_fld - (1+pba->w0_fld)/(1 + pow(a/pba->a_c[n], 6*(1+pba->w0_fld)));
           }
           else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
             center = 3*(1/pba->a_c[n]-1);
@@ -7192,7 +7198,7 @@ int perturb_print_variables(double tau,
             ca2[n] = w_fld - w_prime_fld / 3. / (1.+w_fld) / a_prime_over_a;
           }
 
-          if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition){
+          if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition || pba->w_fld_parametrization == ADE){
             //assign cs2
             if(a<pba->a_c[n] && ppt->cs2_switch == _TRUE_){
               cs2[n] = 1; //default is 1
@@ -7212,7 +7218,7 @@ int perturb_print_variables(double tau,
             
             //assign ca2 // TK ca2_fld specified here 
             if(pba->w_fld_parametrization == pa_transition){
-            if(pba->n_pheno_axion[n]>50) wn_fld = 1;
+            if(pba->n_pheno_axion[n]>pba->n_cap_infinity) wn_fld = 1;
             else wn_fld = (-1+pba->n_pheno_axion[n])/(1+pba->n_pheno_axion[n]);
 
             exp_fld = 3*(1+wn_fld)/pba->nu_fld;
@@ -7221,7 +7227,9 @@ int perturb_print_variables(double tau,
                   /( 1 + pow((pba->a_c[n]/a),exp_fld) )
                   /pba->nu_fld;
             }
-
+            if(pba->w_fld_parametrization == ADE){
+              ca2[n] = w_fld - (1+pba->w0_fld)/(1 + pow(a/pba->a_c[n], 6*(1+pba->w0_fld)));
+            }
             else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
               center = 3*(1/pba->a_c[n]-1);
               z = 1/a-1;
@@ -8069,7 +8077,7 @@ int perturb_derivs(double tau,
                 ca2 = w_fld - w_prime_fld / 3. / (1.+w_fld) / a_prime_over_a;
               }
 
-              if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition){
+              if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition || pba->w_fld_parametrization == ADE){
                 //assign cs2
                 if(a<pba->a_c[n] && ppt->cs2_switch == _TRUE_){
                   cs2 = 1; //default is 1
@@ -8088,7 +8096,7 @@ int perturb_derivs(double tau,
 
                 //assign ca2 // TK ca2_fld specified here 
                 if(pba->w_fld_parametrization == pa_transition){
-                  if(pba->n_pheno_axion[n]>50) wn_fld = 1;
+                  if(pba->n_pheno_axion[n]>pba->n_cap_infinity) wn_fld = 1;
                   else wn_fld = (-1+pba->n_pheno_axion[n])/(1+pba->n_pheno_axion[n]);
 
                   exp_fld = 3*(1+wn_fld)/pba->nu_fld;
@@ -8096,6 +8104,9 @@ int perturb_derivs(double tau,
                   ca2 = ( wn_fld*pba->nu_fld - pow((pba->a_c[n]/a),exp_fld)*(pba->nu_fld + 1 + wn_fld) )
                         /( 1 + pow((pba->a_c[n]/a),exp_fld) )
                         /pba->nu_fld;
+                }
+                if(pba->w_fld_parametrization == ADE){
+                  ca2 = w_fld - (1+pba->w0_fld)/(1 + pow(a/pba->a_c[n], 6*(1+pba->w0_fld)));
                 }
                 else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
                   center = 3*(1/pba->a_c[n]-1);

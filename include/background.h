@@ -13,7 +13,7 @@
 /** list of possible types of spatial curvature */
 
 enum spatial_curvature {flat,open,closed};
-enum w_fld_parametrization {CPL,pheno_axion,pa_transition,w_free_function,pheno_alternative};
+enum w_fld_parametrization {CPL,pheno_axion,pheno_alternative,pa_transition,ADE,w_free_function};
 
 /**
  * All background parameters and evolution that other modules need to know.

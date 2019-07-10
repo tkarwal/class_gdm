@@ -1576,7 +1576,187 @@ int input_read_parameters(
 
       }
 
-       //////////////////////
+
+      //////////////////////~~~~~~~~~~~~~~~ ADE from arxiv[1905.12618]
+
+      else if((strstr(string1,"ADE") != NULL)) {
+        if(input_verbose > 1)printf("Reading in ADE parameters\n");
+        pba->w_fld_parametrization = ADE;
+        // if(pba->w_fld_parametrization==ADE)printf("Reached input_read_parameters, ADE, successfully set w_fld_parametrization = ADE\n");
+        
+        if(input_verbose>1)printf("Current code assumes nu_fld = p = 1/2\n");
+
+        class_call(parser_read_double(pfc,"Omega_Lambda",&param1,&flag1,errmsg),
+                  errmsg,
+                  errmsg);
+        class_call(parser_read_double(pfc,"Omega_fld",&param2,&flag2,errmsg),
+                  errmsg,
+                  errmsg);
+        if (flag1 == _TRUE_){
+          pba->Omega0_lambda = param1;
+          Omega_tot += pba->Omega0_lambda;
+          pba->Omega0_fld = 1. - pba->Omega0_k - Omega_tot;
+        }
+        if(flag2==_FALSE_){
+                /* one can specify the axion density in many ways */
+          class_call(parser_read_list_of_doubles(pfc,
+                                                  "omega_many_fld", //physical density today
+                                                  &int1,
+                                                  &(pba->Omega_many_fld),
+                                                  &flag1,
+                                                  errmsg),
+                      errmsg,errmsg);
+
+          class_call(parser_read_list_of_doubles(pfc,
+                                                  "Omega_many_fld",
+                                                  &int2,
+                                                  &(pba->Omega_many_fld), //fractional density today
+                                                  &flag2,
+                                                  errmsg),
+                      errmsg,errmsg);
+          class_call(parser_read_list_of_doubles(pfc,
+                                                 "fraction_axion", //this one is defined w/r to cdm
+                                                 &int3,
+                                                 &(pba->Omega_many_fld),
+                                                 &flag3,
+                                                 errmsg),
+                     errmsg,errmsg);
+          class_call(parser_read_list_of_doubles(pfc,
+                                                 "Omega_fld_ac", //density at ac defined w/r to rho_crit^today.
+                                                 &int4,
+                                                 &(pba->Omega_fld_ac),
+                                                 &flag4,
+                                                 errmsg),
+                     errmsg,errmsg);
+          class_call(parser_read_list_of_doubles(pfc,
+                                                "fraction_axion_ac",//fractional density at a_c.
+                                                &int5,
+                                                &(pba->Omega_fld_ac),
+                                                &flag5,
+                                                errmsg),
+                    errmsg,errmsg);
+          if(flag1 == _TRUE_ || flag2!=_FALSE_ || flag3!=_FALSE_ ||flag4!=_FALSE_ ||flag5!=_FALSE_ ){
+
+            class_test(flag1==_TRUE_&&flag2==_TRUE_,"you have passed both 'Omega_many_fld' and 'omega_many_fld'. Please pass only one of them.",errmsg,errmsg);
+            class_test(flag2==_TRUE_&&flag3==_TRUE_,"you have passed both 'Omega_many_fld' and 'fraction_axion'. Please pass only one of them.",errmsg,errmsg);
+            class_test(flag2==_TRUE_&&flag4==_TRUE_,"you have passed both 'Omega_many_fld' and 'Omega_fld_ac'. Please pass only one of them.",errmsg,errmsg);
+            class_test(flag3==_TRUE_&&flag4==_TRUE_,"you have passed both 'fraction_axion' and 'Omega_fld_ac'. Please pass only one of them.",errmsg,errmsg);
+            if(flag1==_TRUE_)pba->n_fld = int1;
+            if(flag2==_TRUE_)pba->n_fld = int2;
+            if(flag3==_TRUE_)pba->n_fld = int3;
+            if(flag4==_TRUE_)pba->n_fld = int4;
+            if(flag5==_TRUE_)pba->n_fld = int5;
+            if (flag1 == _TRUE_){
+
+              for(n = 0; n < pba->n_fld; n++){
+              class_alloc(pba->Omega_fld_ac,sizeof(double)*pba->n_fld,pba->error_message);
+              pba->Omega_many_fld[n] *= 1/pba->h/pba->h;
+              pba->Omega_fld_ac[n] = 0; //will be attributed later;
+              Omega_tot += pba->Omega_many_fld[n];
+              }
+            }
+            if(flag2 == _TRUE_ || flag3 == _TRUE_){
+              class_alloc(pba->Omega_fld_ac,sizeof(double)*pba->n_fld,pba->error_message);
+
+              for(n = 0; n < pba->n_fld; n++){
+                if(flag3==_TRUE_){
+                  pba->Omega_many_fld[n] = pba->Omega0_cdm*pba->Omega_many_fld[n]/(1-pba->Omega_many_fld[n]);
+                }
+                else if(pba->Omega0_lambda == 0.0 && pba->n_fld == 1){
+                  pba->Omega_many_fld[n] = 1. - pba->Omega0_k - Omega_tot; //In that specific case, we ensure that the closure relation is satisfy via Omega_fld.
+
+                }
+                pba->Omega_fld_ac[n] = 0; //will be attributed later;
+                Omega_tot += pba->Omega_many_fld[n];
+              }
+            }
+            if(flag4 == _TRUE_ || flag5 == _TRUE_){
+              class_alloc(pba->Omega_many_fld,sizeof(double)*pba->n_fld,pba->error_message);
+              for(n = 0; n < pba->n_fld; n++){
+                  pba->Omega_many_fld[n] = 0; //will be attributed later;
+              }
+            }
+
+
+          }
+
+          else{
+            class_stop(errmsg,"you have w_fld_parametrization defined but you forgot to give a value to Omega_fld, Omega_many_fld, fraction_axion or Omega_fld_ac. Please adapt you input file.")
+          }
+        }
+            
+        else{
+          pba->n_fld = 1;
+          class_alloc(pba->Omega_many_fld,sizeof(double)*pba->n_fld,pba->error_message);
+          class_alloc(pba->Omega_fld_ac,sizeof(double)*pba->n_fld,pba->error_message);
+          pba->Omega_many_fld[0] = pba->Omega0_fld;
+          pba->Omega_fld_ac[0] = 0;
+        }
+
+        if(pba->n_fld!=0){
+
+        class_call(parser_read_double(pfc,
+                                      "w0_fld",
+                                      &param2,
+                                      &flag2,
+                                      errmsg),
+                  errmsg,errmsg);  
+        if(flag2==_FALSE_) {
+          pba->w0_fld = 1.;
+          if(input_verbose>2)printf("Assuming default w0_fld = w_f_ADE = 1\n");
+        }
+        else{
+          pba->w0_fld = param2;
+          if(input_verbose>2)printf("Read in w_f_ADE = w0_fld = %e\n", pba->w0_fld);
+        }
+
+        class_call(parser_read_list_of_doubles(pfc,
+                                               "a_c",
+                                               &int1,
+                                               &(pba->a_c),
+                                               &flag2,
+                                               errmsg),
+                   errmsg,errmsg);
+
+          if(flag2 == _TRUE_){
+            class_test(int1!=pba->n_fld,"Careful: the size of the list of 'a_c' isn't equal to that of 'Omega_many_fld'!",errmsg,errmsg);
+
+            class_alloc(pba->omega_axion,sizeof(double)*pba->n_fld,pba->error_message);
+            for(n = 0; n < pba->n_fld; n++){
+              if(pba->Omega_many_fld[n] == 0){
+                if(flag5 == _TRUE_){
+                      // printf("Omega_r %e\n", (pba->Omega0_g+pba->Omega0_ur));
+                      // printf("H_0 = %e\n", (100*pba->h));
+                      Omega_tot_ac = (pba->Omega0_cdm+pba->Omega0_b)*pow(pba->a_c[n],-3)+(pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[n],-4)+pba->Omega0_lambda;
+                      class_test(pba->Omega_fld_ac[n]==1.0,"you cannot have pba->Omega_fld_ac[n]=1.0!",errmsg,errmsg);
+                      if(pba->Omega_fld_ac[n]!=1.0)pba->Omega_fld_ac[n] = Omega_tot_ac*pba->Omega_fld_ac[n]/(1-pba->Omega_fld_ac[n]);
+                      // printf("%s\n", );
+                }
+                pba->Omega_many_fld[n] = pba->Omega_fld_ac[n]*pow(pba->a_c[n]/pba->a_today,3*(pba->w0_fld+1))
+                                         *(1 + pow(2,0.5))
+                                         /(1 + pow( 1 + pow(pba->a_c[n]/pba->a_today, 6*(1+pba->w0_fld)) ,0.5));
+                Omega_tot += pba->Omega_many_fld[n];
+                // printf("pba->Omega_many_fld[n] %e\n", pba->Omega_many_fld[n]);
+                }
+
+                else if(pba->Omega_fld_ac[n] == 0){
+                  pba->Omega_fld_ac[n] = pba->Omega_many_fld[n]*pow(pba->a_today/pba->a_c[n],3*(pba->w0_fld+1))
+                                         *(1 + pow( 1 + pow(pba->a_c[n]/pba->a_today, 6*(1+pba->w0_fld)) ,0.5))
+                                         /(1 + pow(2,0.5));
+                }
+
+                if(input_verbose>2){
+                  Omega_tot_ac = (pba->Omega0_cdm+pba->Omega0_b)*pow(pba->a_c[n],-3)+(pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[n],-4)+pba->Omega0_lambda;
+                  if(input_verbose>2)printf("pba->Omega_many_fld[n] %e pba->Omega_many_fld_ac %e fac %e \n", pba->Omega_many_fld[n],pba->Omega_fld_ac[n],(pba->Omega_fld_ac[n]/(pba->Omega_fld_ac[n]+Omega_tot_ac)));
+                }
+            }
+          }
+        }
+        // if(pba->w_fld_parametrization==ADE)printf("Reached input_read_parameters, end of ADE, still have w_fld_parametrization = ADE\n");
+
+      }
+
+       //////////////////////~~~~~~~~~~~~~~~~~~~~~
 
        else if((strstr(string1,"pheno_alternative") != NULL)) {
          pba->w_fld_parametrization = pheno_alternative;

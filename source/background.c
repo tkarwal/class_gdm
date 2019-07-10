@@ -425,7 +425,7 @@ int background_functions(
       rho_tot += pvecback[pba->index_bg_rho_fld+n];
       p_tot += w_fld * pvecback[pba->index_bg_rho_fld+n];
 
-      pvecback[pba->index_bg_V_fld+n] = (1-w_fld)*pvecback[pba->index_bg_rho_fld+n]/2;
+      if(pba->w_fld_parametrization == pa_transition)pvecback[pba->index_bg_V_fld+n] = (1-w_fld)*pvecback[pba->index_bg_rho_fld+n]/2;
 
       rho_m += pvecback[pba->index_bg_rho_fld+n] - 3*w_fld * pvecback[pba->index_bg_rho_fld+n];
       rho_r += 3*w_fld * pvecback[pba->index_bg_rho_fld+n];
@@ -555,18 +555,30 @@ int background_w_fld(
     // printf("%e %e %e %e \n",a,*w_fld,*dw_over_da_fld,*integral_fld);
   }
 ///////////
-    else if(pba->w_fld_parametrization == pa_transition){
-      if(pba->n_pheno_axion[n] <= pba->n_cap_infinity)w = (pba->n_pheno_axion[n]-1)/(1+pba->n_pheno_axion[n]); //e.o.s. once the field starts oscillating
-      else w =1;
-      // printf("n > %f is infinity \t n = %f and w_n = %f\n", pba->n_cap_infinity, pba->n_pheno_axion[n],w);
-      *w_fld = (1+w)/(1+pow(pba->a_c[n]/a,3*(1+w)/pba->nu_fld))-1+1e-10; //we add 1e-10 to avoid a crashing of the solver. Checked to be totally invisible.
-      // *w_fld = (pow(a/ pba->a_today,6) - pow(pba->a_c/ pba->a_today,6))/(pow(a/ pba->a_today,6) + pow(pba->a_c/ pba->a_today,6));
-      *dw_over_da_fld = 0;
-      // *dw_over_da_fld = 3*pow(a/pba->a_today,-1-3*(1+w))*pba->a_c[n]/ pba->a_today*(1+w)*(1+w)/pow((1 + pba->a_c[n]/pba->a_today*pow(a/ pba->a_today,-3*(1+w))),2);
-      *integral_fld = //-3*(1+w)*log(a/pba->a_today) - pba->nu_fld*log(1+ pow(pba->a_c[n]/a,3*(1+w)/pba->nu_fld));
-        3*(1+w)*( log(pba->a_today/a) 
-        + pba->nu_fld/3/(1+w)*log( (1 + pow((pba->a_c[n]/pba->a_today),3*(1+w)/pba->nu_fld) ) / (1 + pow((pba->a_c[n]/a),3*(1+w)/pba->nu_fld) ) ) );
-      // printf("%e %e %e %e %e %e %e\n",a,w,*w_fld,*dw_over_da_fld,*integral_fld,exp(*integral_fld),pba->n_pheno_axion[n]);
+  else if(pba->w_fld_parametrization == pa_transition){
+    if(pba->n_pheno_axion[n] <= pba->n_cap_infinity)w = (pba->n_pheno_axion[n]-1)/(1+pba->n_pheno_axion[n]); //e.o.s. once the field starts oscillating
+    else w =1;
+    // printf("n > %f is infinity \t n = %f and w_n = %f\n", pba->n_cap_infinity, pba->n_pheno_axion[n],w);
+    *w_fld = (1+w)/(1+pow(pba->a_c[n]/a,3*(1+w)/pba->nu_fld))-1+1e-10; //we add 1e-10 to avoid a crashing of the solver. Checked to be totally invisible.
+    // *w_fld = (pow(a/ pba->a_today,6) - pow(pba->a_c/ pba->a_today,6))/(pow(a/ pba->a_today,6) + pow(pba->a_c/ pba->a_today,6));
+    *dw_over_da_fld = 0;
+    // *dw_over_da_fld = 3*pow(a/pba->a_today,-1-3*(1+w))*pba->a_c[n]/ pba->a_today*(1+w)*(1+w)/pow((1 + pba->a_c[n]/pba->a_today*pow(a/ pba->a_today,-3*(1+w))),2);
+    *integral_fld = //-3*(1+w)*log(a/pba->a_today) - pba->nu_fld*log(1+ pow(pba->a_c[n]/a,3*(1+w)/pba->nu_fld));
+      3*(1+w)*( log(pba->a_today/a) 
+      + pba->nu_fld/3/(1+w)*log( (1 + pow((pba->a_c[n]/pba->a_today),3*(1+w)/pba->nu_fld) ) / (1 + pow((pba->a_c[n]/a),3*(1+w)/pba->nu_fld) ) ) );
+    // if(pba->background_verbose>4)printf("z = %e w(z) = %e integral_fld = %e exp(int_fld) = %e \n",1/a,*w_fld,*integral_fld,exp(*integral_fld));  
+    // printf("%e %e %e %e %e %e %e\n",a,w,*w_fld,*dw_over_da_fld,*integral_fld,exp(*integral_fld),pba->n_pheno_axion[n]);
+  }
+///////////
+  else if(pba->w_fld_parametrization == ADE){
+    w = pba->w0_fld;
+    *w_fld = (1+w)/pow(1+pow(pba->a_c[n]/a,6*(1+w)),0.5)-1+1e-10; //we add 1e-10 to avoid a crashing of the solver. Checked to be totally invisible.
+    *dw_over_da_fld = 0;
+    *integral_fld = 
+      3*(1+w)*log(pba->a_today/a)
+      - log( 1 + pow(1 + pow((pba->a_c[n]/a),6*(1+w)), 0.5) )
+      + log( 1 + pow(1 + pow((pba->a_c[n]/pba->a_today),6*(1+w)), 0.5) );
+    // if(pba->background_verbose>4)printf("z = %e w(z) = %e integral_fld = %e exp(int_fld) = %e \n",1/a,*w_fld,*integral_fld,exp(*integral_fld));
   }
 ///////////
   // else if(pba->w_fld_parametrization == cos_axion){
@@ -1117,7 +1129,7 @@ int background_init(
   /*class_test((pba->Omega0_k < _OMEGAK_SMALL_)||(pba->Omega0_k > _OMEGAK_BIG_),
              pba->error_message,
              "Omegak = %g out of bounds (%g<Omegak<%g) \n",pba->Omega0_k,_OMEGAK_SMALL_,_OMEGAK_BIG_);*/
-
+  
   /* fluid equation of state */
   if (pba->has_fld == _TRUE_) {
     if(pba->w_fld_parametrization == w_free_function){
@@ -1333,6 +1345,7 @@ int background_free_input(
                           ) {
 
   int k;
+
   if (pba->Omega0_ncdm_tot != 0.){
     for(k=0; k<pba->N_ncdm; k++){
       free(pba->q_ncdm[k]);
@@ -1477,7 +1490,7 @@ int background_indices(
 
   /* TK added this to initialise index for rho_gdm */
   /* - index for rho_gdm */
-  class_define_index(pba->index_bg_rho_gdm,_TRUE_,index_bg,1);
+  class_define_index(pba->index_bg_rho_gdm,pba->has_gdm,index_bg,1);
 
 
   /* - indices for ncdm. We only define the indices for ncdm1
@@ -1509,9 +1522,14 @@ int background_indices(
   class_define_index(pba->index_bg_rho_fld,pba->has_fld,index_bg,pba->n_fld);
   class_define_index(pba->index_bg_w_fld,pba->has_fld,index_bg,pba->n_fld);
   class_define_index(pba->index_bg_dw_fld,pba->has_fld,index_bg,pba->n_fld);
-  if(pba->w_fld_parametrization = pa_transition){ // TK does this work ? 
-    class_define_index(pba->index_bg_V_fld,pba->has_fld,index_bg,pba->n_fld);
+  if(pba->has_fld == _TRUE_){
+    printf("Found fld\n");
+    if(pba->w_fld_parametrization == pa_transition){ 
+      printf("creating index for V_fld\n");
+      class_define_index(pba->index_bg_V_fld,pba->has_fld,index_bg,pba->n_fld);
+    }
   }
+
 
   /* - index for ultra-relativistic neutrinos/species */
   class_define_index(pba->index_bg_rho_ur,pba->has_ur,index_bg,1);
@@ -2450,7 +2468,7 @@ int background_solve(
       printf("     -> Omega_scf = %g, wished %g\n",
              pvecback[pba->index_bg_rho_scf]/pvecback[pba->index_bg_rho_crit], pba->Omega0_scf);
       if(pba->has_lambda == _TRUE_)
-	printf("     -> Omega_Lambda = %g, wished %g\n",
+	    printf("     -> Omega_Lambda = %g, wished %g\n",
                pvecback[pba->index_bg_rho_lambda]/pvecback[pba->index_bg_rho_crit], pba->Omega0_lambda);
       printf("     -> parameters: [lambda, alpha, A, B] = \n");
       printf("                    [");
@@ -2629,6 +2647,7 @@ int background_initial_conditions(
       // integral_fld = 1; // currently assume the fluid to be negligeable at early time.
       /* rho_fld at initial time */
       pvecback_integration[pba->index_bi_rho_fld+n] = rho_fld_today * exp(integral_fld);
+      if(pba->background_verbose>5)printf("rho_fld (a = %e) = %e\n", a, pvecback_integration[pba->index_bi_rho_fld+n]);
     }
   }
 
@@ -2836,8 +2855,8 @@ int background_output_titles(struct background * pba,
       sprintf(tmp,"(.)dw_fld[%d]",n);
       class_store_columntitle(titles,tmp,_TRUE_);
       }
-      if(pba->w_fld_parametrization = pa_transition){
-        class_store_columntitle(titles,"V_fld",pba->has_fld);
+      if(pba->w_fld_parametrization == pa_transition){
+        class_store_columntitle(titles,"V_fld",_TRUE_);
       }
 
     }
@@ -2910,7 +2929,7 @@ int background_output_data(
         else {
           class_store_double(dataptr,pvecback[pba->index_bg_dw_fld+n],pba->has_fld,storeidx);
         }
-        if(pba->w_fld_parametrization = pa_transition){
+        if(pba->w_fld_parametrization == pa_transition){
           class_store_double(dataptr,pvecback[pba->index_bg_V_fld+n],pba->has_fld,storeidx);
         }
       }
