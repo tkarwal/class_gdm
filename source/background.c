@@ -1523,9 +1523,7 @@ int background_indices(
   class_define_index(pba->index_bg_w_fld,pba->has_fld,index_bg,pba->n_fld);
   class_define_index(pba->index_bg_dw_fld,pba->has_fld,index_bg,pba->n_fld);
   if(pba->has_fld == _TRUE_){
-    printf("Found fld\n");
     if(pba->w_fld_parametrization == pa_transition){ 
-      printf("creating index for V_fld\n");
       class_define_index(pba->index_bg_V_fld,pba->has_fld,index_bg,pba->n_fld);
     }
   }
