@@ -228,11 +228,14 @@ int input_init(
    * These two arrays must contain the strings of names to be searched
    *  for and the corresponding new parameter */
   char * const target_namestrings[] = {"100*theta_s","Omega_dcdmdr","omega_dcdmdr",
-                                       "Omega_scf","Omega_ini_dcdm","omega_ini_dcdm","sigma8","m_fld"};
+                                       "Omega_scf","Omega_ini_dcdm","omega_ini_dcdm",
+                                       "sigma8","m_fld","a_peak_eq"};
   char * const unknown_namestrings[] = {"h","Omega_ini_dcdm","Omega_ini_dcdm",
-                                        "scf_shooting_parameter","Omega_dcdmdr","omega_dcdmdr","A_s","a_c_to_shoot"};
+                                        "scf_shooting_parameter","Omega_dcdmdr","omega_dcdmdr",
+                                        "A_s","a_c_to_shoot","ac_from_aeq"};
   enum computation_stage target_cs[] = {cs_thermodynamics, cs_background, cs_background,
-                                        cs_background, cs_background, cs_background, cs_spectra,cs_background};
+                                        cs_background, cs_background, cs_background, 
+                                        cs_spectra,cs_background,cs_background};
 
   int input_verbose = 0, int1, aux_flag, shooting_failed=_FALSE_;
 
@@ -1540,61 +1543,71 @@ int input_read_parameters(
                      errmsg,errmsg); // TK read in some list of placeholders if ac_is_aeq is true 
           // Read in parameter that decides whether a_c should be set by a_eq 
           // For now this is just a pointer with some stored value, if true, we'll reset all a_c 
-          class_call(parser_read_string(pfc,
-                                        "ac_is_aeq",
-                                        &string1,
-                                        &flag1,
-                                        errmsg),
-                      errmsg,
-                      errmsg);
-          if (flag1 == _TRUE_){
-            if((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)){
-              pba->ac_is_aeq = _TRUE_;
-            }
-            else {
-              pba->ac_is_aeq = _FALSE_; 
-            }
+
+          if(flag2 == _FALSE_){
+            if(input_verbose>1) printf("Shooting for a_c based on a_peak_eq\n");
+            class_alloc(pba->a_c,sizeof(double)*pba->n_fld,pba->error_message);
+            // class_read_double("ac_from_aeq",pba->a_c[0]);
+            // printf("a_c = %e \n", pba->a_c[0]);
           }
 
-          if(flag2 == _TRUE_){
-            class_test(int1!=pba->n_fld,"Careful: the size of the list of 'a_c' isn't equal to that of 'Omega_many_fld'!",errmsg,errmsg);
+          // class_call(parser_read_string(pfc,
+          //                               "ac_is_aeq",
+          //                               &string1,
+          //                               &flag1,
+          //                               errmsg),
+          //             errmsg,
+          //             errmsg);
+          // if (flag1 == _TRUE_){
+          //   if((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)){
+          //     pba->ac_is_aeq = _TRUE_;
+          //   }
+          //   else {
+          //     pba->ac_is_aeq = _FALSE_; 
+          //   }
+          // }
 
-            class_alloc(pba->omega_axion,sizeof(double)*pba->n_fld,pba->error_message);
+          class_test(int1!=pba->n_fld,"Careful: the size of the list of 'a_c' isn't equal to that of 'Omega_many_fld'!",errmsg,errmsg);
 
-            for(n = 0; n < pba->n_fld; n++){
-              // Check whether we want a_c to be a_eq, if so, reset a_c to a_eq 
-              if(pba->ac_is_aeq == _TRUE_){
-                pba->a_c[n] = (pba->Omega0_g+pba->Omega0_ur)/(pba->Omega0_cdm+pba->Omega0_b);
-                if(input_verbose>1)printf("Set a_c = a_eq = Omega_r / Omega_m = %e/%e = %e\n", pba->Omega0_g+pba->Omega0_ur, pba->Omega0_cdm+pba->Omega0_b, pba->a_c[n]);
+          class_alloc(pba->omega_axion,sizeof(double)*pba->n_fld,pba->error_message);
+
+          for(n = 0; n < pba->n_fld; n++){
+            // // Check whether we want a_c to be a_eq, if so, reset a_c to a_eq 
+            // if(pba->ac_is_aeq == _TRUE_){
+            //   pba->a_c[n] = (pba->Omega0_g+pba->Omega0_ur)/(pba->Omega0_cdm+pba->Omega0_b);
+            //   if(input_verbose>1)printf("Set a_c = a_eq = Omega_r / Omega_m = %e/%e = %e\n", pba->Omega0_g+pba->Omega0_ur, pba->Omega0_cdm+pba->Omega0_b, pba->a_c[n]);
+            // }
+            if(flag2 == _FALSE_){
+              class_read_double("ac_from_aeq",pba->a_c[n]);
+            }
+
+            if(pba->n_pheno_axion[n] > pba->n_cap_infinity)wn = 1;
+            else wn = (pba->n_pheno_axion[n]-1)/(pba->n_pheno_axion[n]+1);
+
+            if(pba->Omega_many_fld[n] == 0){
+              if(flag5 == _TRUE_){
+                    // printf("Omega_r %e\n", (pba->Omega0_g+pba->Omega0_ur));
+                    // printf("H_0 = %e\n", (100*pba->h));
+                    Omega_tot_ac = (pba->Omega0_cdm+pba->Omega0_b)*pow(pba->a_c[n],-3)+(pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[n],-4)+pba->Omega0_lambda;
+                    class_test(pba->Omega_fld_ac[n]==1.0,"you cannot have pba->Omega_fld_ac[n]=1.0!",errmsg,errmsg);
+                    if(pba->Omega_fld_ac[n]!=1.0)pba->Omega_fld_ac[n] = Omega_tot_ac*pba->Omega_fld_ac[n]/(1-pba->Omega_fld_ac[n]);
+                    // printf("%s\n", );
               }
 
-              if(pba->n_pheno_axion[n] > pba->n_cap_infinity)wn = 1;
-              else wn = (pba->n_pheno_axion[n]-1)/(pba->n_pheno_axion[n]+1);
-              if(pba->Omega_many_fld[n] == 0){
-                if(flag5 == _TRUE_){
-                      // printf("Omega_r %e\n", (pba->Omega0_g+pba->Omega0_ur));
-                      // printf("H_0 = %e\n", (100*pba->h));
-                      Omega_tot_ac = (pba->Omega0_cdm+pba->Omega0_b)*pow(pba->a_c[n],-3)+(pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[n],-4)+pba->Omega0_lambda;
-                      class_test(pba->Omega_fld_ac[n]==1.0,"you cannot have pba->Omega_fld_ac[n]=1.0!",errmsg,errmsg);
-                      if(pba->Omega_fld_ac[n]!=1.0)pba->Omega_fld_ac[n] = Omega_tot_ac*pba->Omega_fld_ac[n]/(1-pba->Omega_fld_ac[n]);
-                      // printf("%s\n", );
-                }
+              pba->Omega_many_fld[n] = pow(2,pba->nu_fld)*pba->Omega_fld_ac[n]
+                                       /pow(pba->a_today/pba->a_c[n],3*(wn+1))
+                                       /pow((1+ pow( pba->a_c[n]/pba->a_today , 3*(1+wn)/pba->nu_fld )) , pba->nu_fld);
+              Omega_tot += pba->Omega_many_fld[n];
+              // printf("pba->Omega_many_fld[n] %e\n", pba->Omega_many_fld[n]);
+              }
 
-                pba->Omega_many_fld[n] = pow(2,pba->nu_fld)*pba->Omega_fld_ac[n]
-                                         /pow(pba->a_today/pba->a_c[n],3*(wn+1))
-                                         /pow((1+ pow( pba->a_c[n]/pba->a_today , 3*(1+wn)/pba->nu_fld )) , pba->nu_fld);
-                Omega_tot += pba->Omega_many_fld[n];
-                // printf("pba->Omega_many_fld[n] %e\n", pba->Omega_many_fld[n]);
-                }
+              else if(pba->Omega_fld_ac[n] == 0){
+                pba->Omega_fld_ac[n] = pba->Omega_many_fld[n]*pow((1+ pow( pba->a_c[n]/pba->a_today , 3*(1+wn)/pba->nu_fld ))/2 , pba->nu_fld)
+                                                             *pow(pba->a_today/pba->a_c[n],3*(wn+1));
+              }
+              Omega_tot_ac = (pba->Omega0_cdm+pba->Omega0_b)*pow(pba->a_c[n],-3)+(pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[n],-4)+pba->Omega0_lambda;
 
-                else if(pba->Omega_fld_ac[n] == 0){
-                  pba->Omega_fld_ac[n] = pba->Omega_many_fld[n]*pow((1+ pow( pba->a_c[n]/pba->a_today , 3*(1+wn)/pba->nu_fld ))/2 , pba->nu_fld)
-                                                               *pow(pba->a_today/pba->a_c[n],3*(wn+1));
-                }
-                Omega_tot_ac = (pba->Omega0_cdm+pba->Omega0_b)*pow(pba->a_c[n],-3)+(pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[n],-4)+pba->Omega0_lambda;
-
-                // printf("pba->Omega_many_fld[n] %e pba->Omega_many_fld_ac %e fac %e \n", pba->Omega_many_fld[n],pba->Omega_fld_ac[n],(pba->Omega_fld_ac[n]/(pba->Omega_fld_ac[n]+Omega_tot_ac)));
-            }
+              // printf("pba->Omega_many_fld[n] %e pba->Omega_many_fld_ac %e fac %e \n", pba->Omega_many_fld[n],pba->Omega_fld_ac[n],(pba->Omega_fld_ac[n]/(pba->Omega_fld_ac[n]+Omega_tot_ac)));
           }
         }
 
@@ -4070,6 +4083,9 @@ int input_default_params(
   pba->axion_is_dark_energy = _FALSE_;
   pba->nu_fld = 1; // nu_fld returns the original w_fld for the fluid approximation to axions 
   pba->n_cap_infinity = 50;
+  // // default initialise these peak seeking parameters to 0 
+  // pba->a_peak = 0.;
+  // pba->f_ede_peak = 0.;
 
   pba->shooting_failed = _FALSE_;
 
@@ -4927,6 +4943,12 @@ int input_try_unknown_parameters(double * unknown_parameter,
       // if(output[i]>1)output[i]=1;
 
       break;
+    case a_peak_eq:
+      Omega_m = ba.Omega0_cdm+ba.Omega0_b;
+      Omega_r = ba.Omega0_g+ba.Omega0_ur;
+      output[i] = ba.a_peak-Omega_r/Omega_m;
+      printf("a_peak from bg = %e \t a_peak - a_eq = %e\n", ba.a_peak, output[i]);
+      break;
     }
   }
 
@@ -5127,6 +5149,19 @@ int input_get_guess(double *xguess,
       // }
       dxdy[index_guess] = xguess[index_guess]/10;
       break;
+
+    case a_peak_eq:
+      Omega_m = ba.Omega0_cdm+ba.Omega0_b;
+      Omega_r = ba.Omega0_g+ba.Omega0_ur;
+      xguess[index_guess] = Omega_r/Omega_m;
+      // TK do I need to update the background value of a_c with this guess??? 
+
+      printf("xguess = %e \n", xguess[index_guess] );
+
+      dxdy[index_guess] = 1.;
+      break;
+      /* That is, currently, this is set up assuming you want the peak to match a_eq
+      Our guess for a_c in that case, which is very close to a_peak is also a_eq */
     }
     //printf("xguess = %g\n",xguess[index_guess]);
   }

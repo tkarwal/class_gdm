@@ -455,6 +455,15 @@ int background_functions(
   /** - compute relativistic density to total density ratio */
   pvecback[pba->index_bg_Omega_r] = rho_r / rho_tot;
 
+  /** - compute fluid density to total density ratio to later calculate the location of the peak of f_EDE */
+  if(pba->has_fld == _TRUE_){
+    for(n = 0 ; n<pba->n_fld ; n++){
+    pvecback[pba->index_bg_Omega_fld+n] = pvecback[pba->index_bg_rho_fld+n] / rho_tot;
+    // printf("Omega_fld = %e \n", pvecback[pba->index_bg_rho_fld+n]);
+    // printf("%e\n", pvecback[pba->index_bg_Omega_fld+n]);
+    }
+  }
+
   /** - compute other quantities in the exhaustive, redundant format */
   if (return_format == pba->long_info) {
 
@@ -1132,6 +1141,10 @@ int background_init(
   
   /* fluid equation of state */
   if (pba->has_fld == _TRUE_) {
+
+    pba->f_ede_peak = 0.0;
+    pba->a_peak = 0.0; 
+
     if(pba->w_fld_parametrization == w_free_function){
       w_free_function_init(ppr,pba);
     }
@@ -1522,6 +1535,7 @@ int background_indices(
   class_define_index(pba->index_bg_rho_fld,pba->has_fld,index_bg,pba->n_fld);
   class_define_index(pba->index_bg_w_fld,pba->has_fld,index_bg,pba->n_fld);
   class_define_index(pba->index_bg_dw_fld,pba->has_fld,index_bg,pba->n_fld);
+  class_define_index(pba->index_bg_Omega_fld,pba->has_fld,index_bg,pba->n_fld);
   if(pba->has_fld == _TRUE_){
     if(pba->w_fld_parametrization == pa_transition){ 
       class_define_index(pba->index_bg_V_fld,pba->has_fld,index_bg,pba->n_fld);
@@ -2213,6 +2227,8 @@ int background_solve(
   double tau_of_ac;
   int n;
   double Omega_m, Omega_r;
+  /* EDE parameters defining peak for shooting */
+  double z_peak_new, f_ede_new;
   bpaw.pba = pba;
   class_alloc(pvecback,pba->bg_size*sizeof(double),pba->error_message);
   bpaw.pvecback = pvecback;
@@ -2384,6 +2400,20 @@ int background_solve(
     class_call(background_functions(pba,pData+i*pba->bi_size, pba->long_info, pvecback),
                pba->error_message,
                pba->error_message);
+
+    if(pba->w_fld_parametrization == pa_transition){
+      /* Scalar field critical redshift and fractional energy density at z_c calculations */
+      z_peak_new = pba->z_table[i];
+      f_ede_new = pvecback[pba->index_bg_Omega_fld+0];
+      // printf("pba->f_ede %e\n", pba->f_ede);
+      if(f_ede_new > pba->f_ede_peak){
+        // printf("here pba->f_ede %e pvecback[pba->index_bg_Omega_fld+0] %e\n", pba->f_ede,pvecback[pba->index_bg_Omega_fld+0]);
+        pba->a_peak = 1./(1+z_peak_new);
+        // pba->axion_ac = 1/z_c_new-1;
+        pba->f_ede_peak = f_ede_new;
+     }
+   }
+
 
     /* -> compute growth functions (valid in dust universe) */
 
@@ -2646,6 +2676,7 @@ int background_initial_conditions(
       /* rho_fld at initial time */
       pvecback_integration[pba->index_bi_rho_fld+n] = rho_fld_today * exp(integral_fld);
       if(pba->background_verbose>5)printf("rho_fld (a = %e) = %e\n", a, pvecback_integration[pba->index_bi_rho_fld+n]);
+      // printf("rho_fld (a = %e) = %e = rho_fld_0*exp(%e)\n", a, pvecback_integration[pba->index_bi_rho_fld+n], integral_fld);
     }
   }
 
