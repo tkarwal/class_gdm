@@ -5869,6 +5869,7 @@ int perturb_total_stress_energy(
         }
 
         if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition || pba->w_fld_parametrization == ADE){
+
           //assign cs2
           if(a<pba->a_c[n] && ppt->cs2_switch == _TRUE_){
             cs2 = 1; //default is 1
@@ -6941,6 +6942,7 @@ int perturb_print_variables(double tau,
         }
 
         if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition || pba->w_fld_parametrization == ADE){
+          
           //assign cs2
           if(a<pba->a_c[n] && ppt->cs2_switch == _TRUE_){
             cs2[n] = 1; //default is 1
@@ -7199,6 +7201,7 @@ int perturb_print_variables(double tau,
           }
 
           if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition || pba->w_fld_parametrization == ADE){
+            
             //assign cs2
             if(a<pba->a_c[n] && ppt->cs2_switch == _TRUE_){
               cs2[n] = 1; //default is 1
@@ -7228,6 +7231,7 @@ int perturb_print_variables(double tau,
                   /pba->nu_fld;
             }
             if(pba->w_fld_parametrization == ADE){
+
               ca2[n] = w_fld - (1+pba->w0_fld)/(1 + pow(a/pba->a_c[n], 6*(1+pba->w0_fld)));
             }
             else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){
@@ -8078,6 +8082,7 @@ int perturb_derivs(double tau,
               }
 
               if(pba->w_fld_parametrization == pheno_axion || pba->w_fld_parametrization == pheno_alternative || pba->w_fld_parametrization == pa_transition || pba->w_fld_parametrization == ADE){
+                
                 //assign cs2
                 if(a<pba->a_c[n] && ppt->cs2_switch == _TRUE_){
                   cs2 = 1; //default is 1
@@ -8106,6 +8111,7 @@ int perturb_derivs(double tau,
                         /pba->nu_fld;
                 }
                 if(pba->w_fld_parametrization == ADE){
+
                   ca2 = w_fld - (1+pba->w0_fld)/(1 + pow(a/pba->a_c[n], 6*(1+pba->w0_fld)));
                 }
                 else if(a<pba->a_c[n] && ppt->ca2_switch == _TRUE_){

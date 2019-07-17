@@ -1537,13 +1537,37 @@ int input_read_parameters(
                                                  &(pba->a_c),
                                                  &flag2,
                                                  errmsg),
-                     errmsg,errmsg);
+                     errmsg,errmsg); // TK read in some list of placeholders if ac_is_aeq is true 
+          // Read in parameter that decides whether a_c should be set by a_eq 
+          // For now this is just a pointer with some stored value, if true, we'll reset all a_c 
+          class_call(parser_read_string(pfc,
+                                        "ac_is_aeq",
+                                        &string1,
+                                        &flag1,
+                                        errmsg),
+                      errmsg,
+                      errmsg);
+          if (flag1 == _TRUE_){
+            if((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)){
+              pba->ac_is_aeq = _TRUE_;
+            }
+            else {
+              pba->ac_is_aeq = _FALSE_; 
+            }
+          }
 
           if(flag2 == _TRUE_){
             class_test(int1!=pba->n_fld,"Careful: the size of the list of 'a_c' isn't equal to that of 'Omega_many_fld'!",errmsg,errmsg);
 
             class_alloc(pba->omega_axion,sizeof(double)*pba->n_fld,pba->error_message);
+
             for(n = 0; n < pba->n_fld; n++){
+              // Check whether we want a_c to be a_eq, if so, reset a_c to a_eq 
+              if(pba->ac_is_aeq == _TRUE_){
+                pba->a_c[n] = (pba->Omega0_g+pba->Omega0_ur)/(pba->Omega0_cdm+pba->Omega0_b);
+                if(input_verbose>1)printf("Set a_c = a_eq = Omega_r / Omega_m = %e/%e = %e\n", pba->Omega0_g+pba->Omega0_ur, pba->Omega0_cdm+pba->Omega0_b, pba->a_c[n]);
+              }
+
               if(pba->n_pheno_axion[n] > pba->n_cap_infinity)wn = 1;
               else wn = (pba->n_pheno_axion[n]-1)/(pba->n_pheno_axion[n]+1);
               if(pba->Omega_many_fld[n] == 0){
@@ -1555,6 +1579,7 @@ int input_read_parameters(
                       if(pba->Omega_fld_ac[n]!=1.0)pba->Omega_fld_ac[n] = Omega_tot_ac*pba->Omega_fld_ac[n]/(1-pba->Omega_fld_ac[n]);
                       // printf("%s\n", );
                 }
+
                 pba->Omega_many_fld[n] = pow(2,pba->nu_fld)*pba->Omega_fld_ac[n]
                                          /pow(pba->a_today/pba->a_c[n],3*(wn+1))
                                          /pow((1+ pow( pba->a_c[n]/pba->a_today , 3*(1+wn)/pba->nu_fld )) , pba->nu_fld);
@@ -1569,7 +1594,6 @@ int input_read_parameters(
                 Omega_tot_ac = (pba->Omega0_cdm+pba->Omega0_b)*pow(pba->a_c[n],-3)+(pba->Omega0_g+pba->Omega0_ur)*pow(pba->a_c[n],-4)+pba->Omega0_lambda;
 
                 // printf("pba->Omega_many_fld[n] %e pba->Omega_many_fld_ac %e fac %e \n", pba->Omega_many_fld[n],pba->Omega_fld_ac[n],(pba->Omega_fld_ac[n]/(pba->Omega_fld_ac[n]+Omega_tot_ac)));
-
             }
           }
         }
