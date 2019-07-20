@@ -1540,45 +1540,31 @@ int input_read_parameters(
                                                  &(pba->a_c),
                                                  &flag2,
                                                  errmsg),
-                     errmsg,errmsg); // TK read in some list of placeholders if ac_is_aeq is true 
-          // Read in parameter that decides whether a_c should be set by a_eq 
-          // For now this is just a pointer with some stored value, if true, we'll reset all a_c 
+                     errmsg,errmsg); 
 
           if(flag2 == _FALSE_){
-            if(input_verbose>1) printf("Shooting for a_c based on a_peak_eq\n");
+            if(input_verbose>1) printf("Shooting for a_c based on a_peak_eq.\nEither pass a_c, or set a_peak = a_eq with a_peak_eq.\n");
             class_alloc(pba->a_c,sizeof(double)*pba->n_fld,pba->error_message);
             // class_read_double("ac_from_aeq",pba->a_c[0]);
             // printf("a_c = %e \n", pba->a_c[0]);
           }
-
-          // class_call(parser_read_string(pfc,
-          //                               "ac_is_aeq",
-          //                               &string1,
-          //                               &flag1,
-          //                               errmsg),
-          //             errmsg,
-          //             errmsg);
-          // if (flag1 == _TRUE_){
-          //   if((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)){
-          //     pba->ac_is_aeq = _TRUE_;
-          //   }
-          //   else {
-          //     pba->ac_is_aeq = _FALSE_; 
-          //   }
-          // }
 
           class_test(int1!=pba->n_fld,"Careful: the size of the list of 'a_c' isn't equal to that of 'Omega_many_fld'!",errmsg,errmsg);
 
           class_alloc(pba->omega_axion,sizeof(double)*pba->n_fld,pba->error_message);
 
           for(n = 0; n < pba->n_fld; n++){
-            // // Check whether we want a_c to be a_eq, if so, reset a_c to a_eq 
-            // if(pba->ac_is_aeq == _TRUE_){
-            //   pba->a_c[n] = (pba->Omega0_g+pba->Omega0_ur)/(pba->Omega0_cdm+pba->Omega0_b);
-            //   if(input_verbose>1)printf("Set a_c = a_eq = Omega_r / Omega_m = %e/%e = %e\n", pba->Omega0_g+pba->Omega0_ur, pba->Omega0_cdm+pba->Omega0_b, pba->a_c[n]);
-            // }
+
             if(flag2 == _FALSE_){
-              class_read_double("ac_from_aeq",pba->a_c[n]);
+              class_read_double("ac_from_aeq",pba->a_c[n]); 
+              // class_call(parser_read_double(pfc,"ac_from_aeq",&param3,&flag3,errmsg),
+              //       errmsg,
+              //       errmsg);  
+              // if (flag3 == _TRUE_){
+              //   pba->a_c[n] = param3;
+              //   printf("Read in a_c from a_peak_eq\n");
+              // } 
+              // else class_stop(errmsg,"Either pass a_c, or set a_peak = a_eq with a_peak_eq. \n")
             }
 
             if(pba->n_pheno_axion[n] > pba->n_cap_infinity)wn = 1;
@@ -4947,7 +4933,7 @@ int input_try_unknown_parameters(double * unknown_parameter,
       Omega_m = ba.Omega0_cdm+ba.Omega0_b;
       Omega_r = ba.Omega0_g+ba.Omega0_ur;
       output[i] = ba.a_peak-Omega_r/Omega_m;
-      printf("a_peak from bg = %e \t a_peak - a_eq = %e\n", ba.a_peak, output[i]);
+      if(input_verbose>2)printf("a_peak from bg = %e \t a_peak - a_eq = %e\n", ba.a_peak, output[i]);
       break;
     }
   }
@@ -5153,10 +5139,8 @@ int input_get_guess(double *xguess,
     case a_peak_eq:
       Omega_m = ba.Omega0_cdm+ba.Omega0_b;
       Omega_r = ba.Omega0_g+ba.Omega0_ur;
-      xguess[index_guess] = Omega_r/Omega_m;
+      xguess[index_guess] = 0.94*Omega_r/Omega_m;
       // TK do I need to update the background value of a_c with this guess??? 
-
-      printf("xguess = %e \n", xguess[index_guess] );
 
       dxdy[index_guess] = 1.;
       break;

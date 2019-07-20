@@ -64,7 +64,6 @@ struct background
 		     newtonian gauge!!!) */
   double nu_fld; // TK pheno axion transition parameter under the pa_transition fluid switch 
   double n_cap_infinity;
-  short  ac_is_aeq;
   /* Parameters in bg to figure out peak of EDE */
   double a_peak;
   double f_ede_peak;
