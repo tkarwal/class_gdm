@@ -1524,15 +1524,49 @@ int input_read_parameters(
           pba->Omega_fld_ac[0] = 0;
         }
 
+
+
         if(pba->n_fld!=0){
-          class_call(parser_read_list_of_doubles(pfc,
-                                                 "n_pheno_axion",
-                                                 &int1,
-                                                 &(pba->n_pheno_axion),
-                                                 &flag2,
-                                                 errmsg),
-                     errmsg,errmsg);
-          class_test(int1!=pba->n_fld,"Careful: the size of the list of 'n_pheno_axion' isn't equal to that of 'Omega_many_fld'!",errmsg,errmsg);
+
+          /* Check whether we want wn = cs2 */
+          class_call(parser_read_string(pfc,
+                                        "cs2_is_wn",
+                                        &string1,
+                                        &flag1,
+                                        errmsg),
+                      errmsg,
+                      errmsg);
+          if (flag1 == _TRUE_){
+            if((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)){
+              pba->cs2_is_wn = _TRUE_;
+              if(input_verbose>2)printf("Asked for cs2 = wn. Will read in cs2 and accordingly set n_pheno_axion\n");
+            }
+            else {
+              pba->cs2_is_wn = _FALSE_;
+            }
+          }
+
+          /* If we want wn = cs2, read in cs2 and accordingly set n_pheno_axion */
+          if(pba->cs2_is_wn == _TRUE_){
+            class_alloc(pba->n_pheno_axion,sizeof(double)*pba->n_fld,pba->error_message);
+            class_read_double("cs2_fld",pba->cs2_fld);
+            if(pba->cs2_fld != 1.) pba->n_pheno_axion[0] = (pba->cs2_fld + 1) / (1 - pba->cs2_fld);
+            else pba->n_pheno_axion[0] = 1000;
+            if(input_verbose>2)printf("Read in cs2_fld = %e and set n_pheno_axion = %e\n", pba->cs2_fld, pba->n_pheno_axion[0]);
+            class_test(1!=pba->n_fld,"Careful: just 1 n_pheno_axion is actually allocated if you choose cs2_is_wn but you have more than 1 'Omega_many_fld' assigned!",errmsg,errmsg);
+          }
+
+          else{
+            class_call(parser_read_list_of_doubles(pfc,
+                                                   "n_pheno_axion",
+                                                   &int1,
+                                                   &(pba->n_pheno_axion),
+                                                   &flag2,
+                                                   errmsg),
+                       errmsg,errmsg);
+            class_test(int1!=pba->n_fld,"Careful: the size of the list of 'n_pheno_axion' isn't equal to that of 'Omega_many_fld'!",errmsg,errmsg);
+          }          
+
 
           class_call(parser_read_list_of_doubles(pfc,
                                                  "a_c",
@@ -1541,6 +1575,8 @@ int input_read_parameters(
                                                  &flag2,
                                                  errmsg),
                      errmsg,errmsg); 
+          if(flag2 == _TRUE_)class_test(int1!=pba->n_fld,"Careful: the size of the list of 'a_c' isn't equal to that of 'Omega_many_fld'!",errmsg,errmsg);
+
 
           if(flag2 == _FALSE_){
             if(input_verbose>1) printf("Shooting for a_c based on a_peak_eq.\nEither pass a_c, or set a_peak = a_eq with a_peak_eq.\n");
@@ -1548,8 +1584,6 @@ int input_read_parameters(
             // class_read_double("ac_from_aeq",pba->a_c[0]);
             // printf("a_c = %e \n", pba->a_c[0]);
           }
-
-          class_test(int1!=pba->n_fld,"Careful: the size of the list of 'a_c' isn't equal to that of 'Omega_many_fld'!",errmsg,errmsg);
 
           class_alloc(pba->omega_axion,sizeof(double)*pba->n_fld,pba->error_message);
 
@@ -1897,6 +1931,7 @@ int input_read_parameters(
 
         // printf("Definitely reading in fld cs2 params .........\n");
         class_read_double("cs2_fld",pba->cs2_fld);
+
         class_call(parser_read_string(pfc,
                                       "cs2_is_1",
                                       &string1,
@@ -4068,7 +4103,7 @@ int input_default_params(
   pba->axion_is_mu_and_alpha = _FALSE_;
   pba->axion_is_dark_energy = _FALSE_;
   pba->nu_fld = 1; // nu_fld returns the original w_fld for the fluid approximation to axions 
-  pba->n_cap_infinity = 50;
+  pba->n_cap_infinity = 500;
   // // default initialise these peak seeking parameters to 0 
   // pba->a_peak = 0.;
   // pba->f_ede_peak = 0.;

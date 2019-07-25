@@ -67,6 +67,7 @@ struct background
   /* Parameters in bg to figure out peak of EDE */
   double a_peak;
   double f_ede_peak;
+  short cs2_is_wn; // TK added switch in input to check if wn = cs2, read in cs2 and accordingly reset n_pheno_axion 
 
 
    /** - TK added GDM parameters here */
