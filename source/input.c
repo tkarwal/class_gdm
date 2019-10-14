@@ -1527,7 +1527,6 @@ int input_read_parameters(
 
 
         if(pba->n_fld!=0){
-
           /* Check whether we want wn = cs2 */
           class_call(parser_read_string(pfc,
                                         "cs2_is_wn",

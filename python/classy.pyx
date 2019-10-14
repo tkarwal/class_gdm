@@ -1547,6 +1547,13 @@ cdef class Class:
                 value = self.ba.alpha_fld[0]
             elif name == 'Omega_axion_ac':
                 value = self.ba.Omega_fld_ac[0]
+            elif name == 'a_c':
+                value = self.ba.a_c[0]
+            elif name == 'a_eq':
+                value = (self.ba.Omega0_g + self.ba.Omega0_ur)/(self.ba.Omega0_b + self.ba.Omega0_cdm+
+                         self.ba.Omega0_ncdm_tot + self.ba.Omega0_dcdm)
+            elif name == 'a_peak':
+                value = self.ba.a_peak
             elif name == 'age':
                 value = self.ba.age
             elif name == 'conformal_age':
