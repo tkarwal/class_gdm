@@ -427,8 +427,8 @@ int background_functions(
 
       if(pba->w_fld_parametrization == pa_transition)pvecback[pba->index_bg_V_fld+n] = (1-w_fld)*pvecback[pba->index_bg_rho_fld+n]/2;
 
-      rho_m += pvecback[pba->index_bg_rho_fld+n] - 3*w_fld * pvecback[pba->index_bg_rho_fld+n];
-      rho_r += 3*w_fld * pvecback[pba->index_bg_rho_fld+n];
+      // rho_m += pvecback[pba->index_bg_rho_fld+n] - 3*w_fld * pvecback[pba->index_bg_rho_fld+n];
+      // rho_r += 3*w_fld * pvecback[pba->index_bg_rho_fld+n];
     }
 
   }
@@ -2409,7 +2409,6 @@ int background_solve(
       if(f_ede_new > pba->f_ede_peak){
         // printf("here pba->f_ede %e pvecback[pba->index_bg_Omega_fld+0] %e\n", pba->f_ede,pvecback[pba->index_bg_Omega_fld+0]);
         pba->a_peak = 1./(1+z_peak_new);
-        // pba->axion_ac = 1/z_c_new-1;
         pba->f_ede_peak = f_ede_new;
      }
    }
@@ -2820,6 +2819,7 @@ int background_find_equality(
   pba->H_eq = pvecback[pba->index_bg_H];
   pba->z_eq = pba->a_today/pba->a_eq -1.;
   pba->tau_eq = tau_mid;
+
 
   if (pba->background_verbose > 0) {
     printf(" -> radiation/matter equality at z = %f\n",pba->z_eq);

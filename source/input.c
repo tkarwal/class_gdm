@@ -1391,7 +1391,7 @@ int input_read_parameters(
       //////////////////////
 
       else if((strstr(string1,"pa_transition") != NULL)) {
-        if(input_verbose > 1)printf("Reading in pa_transition parameters\n");
+        if(input_verbose > 5)printf("Reading in pa_transition parameters\n");
         pba->w_fld_parametrization = pa_transition;
 
         // definitely read in nu_fld
@@ -1399,22 +1399,22 @@ int input_read_parameters(
                     errmsg,
                     errmsg);  
         if(flag2==_FALSE_) {
-          if(input_verbose>1)printf("You didn't pass a value for nu_fld. Defaulting to nu_fld = 1\n");
+          if(input_verbose>5)printf("You didn't pass a value for nu_fld. Defaulting to nu_fld = 1\n");
         }
         else{
           pba->nu_fld = param2;
-          if(input_verbose>1)printf("nu_fld = %f\n", pba->nu_fld);
+          if(input_verbose>5)printf("nu_fld = %f\n", pba->nu_fld);
         }
 
         class_call(parser_read_double(pfc,"n_cap_infinity",&param2,&flag2,errmsg),
                     errmsg,
                     errmsg);  
         if(flag2==_FALSE_) {
-          if(input_verbose>2)printf("Assuming default n > %f makes n = infinity\n", pba->n_cap_infinity);
+          if(input_verbose>5)printf("Assuming default n > %f makes n = infinity\n", pba->n_cap_infinity);
         }
         else{
           pba->n_cap_infinity = param2;
-          if(input_verbose>2)printf("Assuming n > %f makes n = infinity\n", pba->n_cap_infinity);
+          if(input_verbose>5)printf("Assuming n > %f makes n = infinity\n", pba->n_cap_infinity);
         }
 
         class_call(parser_read_double(pfc,"Omega_Lambda",&param1,&flag1,errmsg),
@@ -1538,7 +1538,7 @@ int input_read_parameters(
           if (flag1 == _TRUE_){
             if((strstr(string1,"y") != NULL) || (strstr(string1,"Y") != NULL)){
               pba->cs2_is_wn = _TRUE_;
-              if(input_verbose>2)printf("Asked for cs2 = wn. Will read in cs2 and accordingly set n_pheno_axion\n");
+              if(input_verbose>5)printf("Asked for cs2 = wn. Will read in cs2 and accordingly set n_pheno_axion\n");
             }
             else {
               pba->cs2_is_wn = _FALSE_;
@@ -1551,7 +1551,7 @@ int input_read_parameters(
             class_read_double("cs2_fld",pba->cs2_fld);
             if(pba->cs2_fld != 1.) pba->n_pheno_axion[0] = (pba->cs2_fld + 1) / (1 - pba->cs2_fld);
             else pba->n_pheno_axion[0] = 1000;
-            if(input_verbose>2)printf("Read in cs2_fld = %e and set n_pheno_axion = %e\n", pba->cs2_fld, pba->n_pheno_axion[0]);
+            if(input_verbose>5)printf("Read in cs2_fld = %e and set n_pheno_axion = %e\n", pba->cs2_fld, pba->n_pheno_axion[0]);
             class_test(1!=pba->n_fld,"Careful: just 1 n_pheno_axion is actually allocated if you choose cs2_is_wn but you have more than 1 'Omega_many_fld' assigned!",errmsg,errmsg);
           }
 
@@ -1578,7 +1578,7 @@ int input_read_parameters(
 
 
           if(flag2 == _FALSE_){
-            if(input_verbose>1) printf("Shooting for a_c based on a_peak_eq.\nEither pass a_c, or set a_peak = a_eq with a_peak_eq.\n");
+            if(input_verbose>5) printf("Shooting for a_c based on a_peak_eq.\nEither pass a_c, or set a_peak = a_eq with a_peak_eq.\n");
             class_alloc(pba->a_c,sizeof(double)*pba->n_fld,pba->error_message);
             // class_read_double("ac_from_aeq",pba->a_c[0]);
             // printf("a_c = %e \n", pba->a_c[0]);
@@ -1590,7 +1590,7 @@ int input_read_parameters(
 
             if(flag2 == _FALSE_){
               class_read_double("ac_from_aeq",pba->a_c[n]); 
-              if(input_verbose>1) printf("Got a_c = %e from a_peak = a_eq\n", pba->a_c[n]);
+              if(input_verbose>2) printf("Got a_c = %e from a_peak = a_eq\n", pba->a_c[n]);
               // class_call(parser_read_double(pfc,"ac_from_aeq",&param3,&flag3,errmsg),
               //       errmsg,
               //       errmsg);  
@@ -5174,7 +5174,7 @@ int input_get_guess(double *xguess,
     case a_peak_eq:
       Omega_m = ba.Omega0_cdm+ba.Omega0_b;
       Omega_r = ba.Omega0_g+ba.Omega0_ur;
-      xguess[index_guess] = 1.1*Omega_r/Omega_m;
+      xguess[index_guess] = 0.94*Omega_r/Omega_m;
       // TK do I need to update the background value of a_c with this guess??? 
       dxdy[index_guess] = 1.;
       break;
