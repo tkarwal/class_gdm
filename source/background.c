@@ -2430,6 +2430,8 @@ int background_solve(
                "cannot copy data back to pba->background_table");
   }
 
+  if(pba->background_verbose>1) printf("z_peak = %e\n", 1/pba->a_peak-1);
+
   /** - free the growTable with gt_free() */
 
   class_call(gt_free(&gTable),
@@ -2479,7 +2481,7 @@ int background_solve(
     if(pba->has_dcdm == _TRUE_)Omega_m += pba->Omega0_dcdm;
     Omega_r = pba->Omega0_g;
     if(pba->has_ur)Omega_r+=pba->Omega0_ur;
-    printf(" -> matter radiaton equality at z = %f \n",Omega_m/Omega_r);
+    printf(" -> matter radiaton equality (b,cdm,g,ur only) at z = %f \n",Omega_m/Omega_r);
   }
 
   if (pba->background_verbose > 2) {

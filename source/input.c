@@ -1590,6 +1590,7 @@ int input_read_parameters(
 
             if(flag2 == _FALSE_){
               class_read_double("ac_from_aeq",pba->a_c[n]); 
+              if(input_verbose>1) printf("Got a_c = %e from a_peak = a_eq\n", pba->a_c[n]);
               // class_call(parser_read_double(pfc,"ac_from_aeq",&param3,&flag3,errmsg),
               //       errmsg,
               //       errmsg);  
@@ -4966,7 +4967,7 @@ int input_try_unknown_parameters(double * unknown_parameter,
     case a_peak_eq:
       Omega_m = ba.Omega0_cdm+ba.Omega0_b;
       Omega_r = ba.Omega0_g+ba.Omega0_ur;
-      output[i] = ba.a_peak-Omega_r/Omega_m;
+      output[i] = ba.a_peak-ba.a_eq;
       if(input_verbose>2)printf("a_peak from bg = %e \t a_peak - a_eq = %e\n", ba.a_peak, output[i]);
       break;
     }
@@ -5173,9 +5174,8 @@ int input_get_guess(double *xguess,
     case a_peak_eq:
       Omega_m = ba.Omega0_cdm+ba.Omega0_b;
       Omega_r = ba.Omega0_g+ba.Omega0_ur;
-      xguess[index_guess] = 0.94*Omega_r/Omega_m;
+      xguess[index_guess] = 1.1*Omega_r/Omega_m;
       // TK do I need to update the background value of a_c with this guess??? 
-
       dxdy[index_guess] = 1.;
       break;
       /* That is, currently, this is set up assuming you want the peak to match a_eq
