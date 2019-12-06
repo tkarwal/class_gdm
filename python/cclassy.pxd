@@ -54,6 +54,7 @@ cdef extern from "class.h":
         double * alpha_fld
         double * omega_axion
         double * a_c
+        double a_eq
         double a_peak
         double Neff
         double Omega0_g

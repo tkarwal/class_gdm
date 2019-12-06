@@ -1550,8 +1550,7 @@ cdef class Class:
             elif name == 'a_c':
                 value = self.ba.a_c[0]
             elif name == 'a_eq':
-                value = (self.ba.Omega0_g + self.ba.Omega0_ur)/(self.ba.Omega0_b + self.ba.Omega0_cdm+
-                         self.ba.Omega0_ncdm_tot + self.ba.Omega0_dcdm)
+                value = self.ba.a_eq
             elif name == 'a_peak':
                 value = self.ba.a_peak
             elif name == 'age':
