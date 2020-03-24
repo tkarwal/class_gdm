@@ -2411,6 +2411,8 @@ int background_solve(
         pba->a_peak = 1./(1+z_peak_new);
         pba->f_ede_peak = f_ede_new;
      }
+    if(pba->background_verbose>5) printf("f_ede_peak = %.2e >= %.2e = f_ede_now\n", pba->f_ede_peak, f_ede_new);
+
    }
 
 
@@ -2429,7 +2431,7 @@ int background_solve(
                "cannot copy data back to pba->background_table");
   }
 
-  if(pba->background_verbose>1) printf("z_peak = %e\n", 1/pba->a_peak-1);
+  if(pba->background_verbose>1) printf("z_peak = %e\nf_ede(z_peak) = %.3e \n", 1/pba->a_peak-1,pba->f_ede_peak);
 
   /** - free the growTable with gt_free() */
 
