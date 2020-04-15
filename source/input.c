@@ -1905,7 +1905,7 @@ int input_read_parameters(
 
 
      if(pba->n_fld != 0 ){
-      // printf("Reading in fld cs2 params \n");
+       if(input_verbose>3) printf("Reading in fld perturbation params \n");
        /* additional parameters if there's an exotic fluid */
        class_call(parser_read_string(pfc,
                                      "fld_has_perturbations",
@@ -1927,9 +1927,10 @@ int input_read_parameters(
              class_stop(errmsg,"incomprehensible input '%s' for the field 'fld_has_perturbations'",string1);
            }
          }
+	if(input_verbose>3) printf("Fluid has perturbations? %s\n", pba->fld_has_perturbations ? "true" : "false");
 
 
-        // printf("Definitely reading in fld cs2 params .........\n");
+        //printf("Definitely reading in fld cs2 params ----------------------------------\n");
         class_read_double("cs2_fld",pba->cs2_fld);
 
         class_call(parser_read_string(pfc,
@@ -1948,6 +1949,8 @@ int input_read_parameters(
             ppt->cs2_is_1 = _FALSE_;
           }
         }
+	if(input_verbose>3) printf("Fluid cs2 = 1? %s\n", ppt->cs2_is_1 ? "true" : "false");
+
         class_call(parser_read_string(pfc,
                                       "cs2_is_free",
                                       &string1,
@@ -1964,6 +1967,8 @@ int input_read_parameters(
             ppt->cs2_is_free = _FALSE_;
           }
         }
+	if(input_verbose>3) printf("Fluid cs2 is free? %s \n", ppt->cs2_is_free ? "true" : "false");
+
         class_call(parser_read_string(pfc,
                                       "cs2_switch",
                                       &string1,
@@ -1980,6 +1985,8 @@ int input_read_parameters(
             ppt->cs2_switch = _FALSE_;
           }
         }
+	if(input_verbose>3) printf("Fluid cs2 switch? %s \n", ppt->cs2_switch ? "true" : "false");
+
         class_call(parser_read_string(pfc,
                                       "ca2_switch",
                                       &string1,
@@ -1996,6 +2003,8 @@ int input_read_parameters(
             ppt->ca2_switch = _FALSE_;
           }
         }
+	if(input_verbose>3) printf("Fluid ca2 switch? %s \n", ppt->ca2_switch ? "true" : "false");
+
         class_call(parser_read_string(pfc,
                                       "use_ppf",
                                       &string1,
