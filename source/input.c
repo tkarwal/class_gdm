@@ -234,7 +234,7 @@ int input_init(
                                         "scf_shooting_parameter","Omega_dcdmdr","omega_dcdmdr",
                                         "A_s","a_c_to_shoot","ac_from_aeq"};
   enum computation_stage target_cs[] = {cs_thermodynamics, cs_background, cs_background,
-                                        cs_background, cs_background, cs_background, 
+                                        cs_background, cs_background, cs_background,
                                         cs_spectra,cs_background,cs_background};
 
   int input_verbose = 0, int1, aux_flag, shooting_failed=_FALSE_;
@@ -1397,7 +1397,7 @@ int input_read_parameters(
         // definitely read in nu_fld
         class_call(parser_read_double(pfc,"nu_fld",&param2,&flag2,errmsg),
                     errmsg,
-                    errmsg);  
+                    errmsg);
         if(flag2==_FALSE_) {
           if(input_verbose>5)printf("You didn't pass a value for nu_fld. Defaulting to nu_fld = 1\n");
         }
@@ -1408,7 +1408,7 @@ int input_read_parameters(
 
         class_call(parser_read_double(pfc,"n_cap_infinity",&param2,&flag2,errmsg),
                     errmsg,
-                    errmsg);  
+                    errmsg);
         if(flag2==_FALSE_) {
           if(input_verbose>5)printf("Assuming default n > %f makes n = infinity\n", pba->n_cap_infinity);
         }
@@ -1515,7 +1515,7 @@ int input_read_parameters(
             class_stop(errmsg,"you have w_fld_parametrization defined but you forgot to give a value to Omega_fld, Omega_many_fld, fraction_axion or Omega_fld_ac. Please adapt you input file.")
           }
         }
-            
+
         else{
           pba->n_fld = 1;
           class_alloc(pba->Omega_many_fld,sizeof(double)*pba->n_fld,pba->error_message);
@@ -1564,7 +1564,7 @@ int input_read_parameters(
                                                    errmsg),
                        errmsg,errmsg);
             class_test(int1!=pba->n_fld,"Careful: the size of the list of 'n_pheno_axion' isn't equal to that of 'Omega_many_fld'!",errmsg,errmsg);
-          }          
+          }
 
 
           class_call(parser_read_list_of_doubles(pfc,
@@ -1573,13 +1573,14 @@ int input_read_parameters(
                                                  &(pba->a_c),
                                                  &flag2,
                                                  errmsg),
-                     errmsg,errmsg); 
+                     errmsg,errmsg);
           if(flag2 == _TRUE_)class_test(int1!=pba->n_fld,"Careful: the size of the list of 'a_c' isn't equal to that of 'Omega_many_fld'!",errmsg,errmsg);
 
 
           if(flag2 == _FALSE_){
             if(input_verbose>5) printf("Shooting for a_c based on a_peak_eq.\nEither pass a_c, or set a_peak = a_eq with a_peak_eq.\n");
             class_alloc(pba->a_c,sizeof(double)*pba->n_fld,pba->error_message);
+            pba->a_c[0] = 1;//assign dummy value for memory issue
             // class_read_double("ac_from_aeq",pba->a_c[0]);
             // printf("a_c = %e \n", pba->a_c[0]);
           }
@@ -1589,15 +1590,15 @@ int input_read_parameters(
           for(n = 0; n < pba->n_fld; n++){
 
             if(flag2 == _FALSE_){
-              class_read_double("ac_from_aeq",pba->a_c[n]); 
+              class_read_double("ac_from_aeq",pba->a_c[n]);
               if(input_verbose>2) printf("Got a_c = %e from a_peak = a_eq\n", pba->a_c[n]);
               // class_call(parser_read_double(pfc,"ac_from_aeq",&param3,&flag3,errmsg),
               //       errmsg,
-              //       errmsg);  
+              //       errmsg);
               // if (flag3 == _TRUE_){
               //   pba->a_c[n] = param3;
               //   printf("Read in a_c from a_peak_eq\n");
-              // } 
+              // }
               // else class_stop(errmsg,"Either pass a_c, or set a_peak = a_eq with a_peak_eq. \n")
             }
 
@@ -1640,7 +1641,7 @@ int input_read_parameters(
         if(input_verbose > 1)printf("Reading in ADE parameters\n");
         pba->w_fld_parametrization = ADE;
         // if(pba->w_fld_parametrization==ADE)printf("Reached input_read_parameters, ADE, successfully set w_fld_parametrization = ADE\n");
-        
+
         if(input_verbose>1)printf("Current code assumes nu_fld = p = 1/2\n");
 
         class_call(parser_read_double(pfc,"Omega_Lambda",&param1,&flag1,errmsg),
@@ -1741,7 +1742,7 @@ int input_read_parameters(
             class_stop(errmsg,"you have w_fld_parametrization defined but you forgot to give a value to Omega_fld, Omega_many_fld, fraction_axion or Omega_fld_ac. Please adapt you input file.")
           }
         }
-            
+
         else{
           pba->n_fld = 1;
           class_alloc(pba->Omega_many_fld,sizeof(double)*pba->n_fld,pba->error_message);
@@ -1757,7 +1758,7 @@ int input_read_parameters(
                                       &param2,
                                       &flag2,
                                       errmsg),
-                  errmsg,errmsg);  
+                  errmsg,errmsg);
         if(flag2==_FALSE_) {
           pba->w0_fld = 1.;
           if(input_verbose>2)printf("Assuming default w0_fld = w_f_ADE = 1\n");
@@ -4111,9 +4112,9 @@ int input_default_params(
   pba->fld_has_perturbations = _TRUE_;
   pba->axion_is_mu_and_alpha = _FALSE_;
   pba->axion_is_dark_energy = _FALSE_;
-  pba->nu_fld = 1; // nu_fld returns the original w_fld for the fluid approximation to axions 
+  pba->nu_fld = 1; // nu_fld returns the original w_fld for the fluid approximation to axions
   pba->n_cap_infinity = 500;
-  // // default initialise these peak seeking parameters to 0 
+  // // default initialise these peak seeking parameters to 0
   // pba->a_peak = 0.;
   // pba->f_ede_peak = 0.;
 
@@ -5184,7 +5185,7 @@ int input_get_guess(double *xguess,
       Omega_m = ba.Omega0_cdm+ba.Omega0_b;
       Omega_r = ba.Omega0_g+ba.Omega0_ur;
       xguess[index_guess] = 0.94*Omega_r/Omega_m;
-      // TK do I need to update the background value of a_c with this guess??? 
+      // TK do I need to update the background value of a_c with this guess???
       dxdy[index_guess] = 1.;
       break;
       /* That is, currently, this is set up assuming you want the peak to match a_eq
